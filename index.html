@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 
 <style>
-/* ===== SAFE AREA FIX ===== */
+/* ===== iOS SAFE AREA FIX ===== */
 html, body {
   margin: 0;
   padding: 0;
@@ -22,10 +22,10 @@ html, body {
 
 body {
   min-height: 100vh;
-  padding: env(safe-area-inset-top)
-           env(safe-area-inset-right)
-           env(safe-area-inset-bottom)
-           env(safe-area-inset-left);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color: #e5e7eb;
 }
@@ -42,42 +42,32 @@ body {
   --gold:#facc15;
 }
 
-.hidden{display:none}
-
 #app{
   max-width:480px;
   margin:0 auto;
-  padding:16px;
+  padding:20px;
   min-height:100vh;
 }
 
 /* ===== HEADER ===== */
 header{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:12px;
+  text-align:center;
+  margin-bottom:20px;
 }
 header h1{
-  flex:1;
-  text-align:center;
   margin:0;
-  font-size:20px;
-}
-header button{
-  background:none;
-  border:none;
-  color:var(--blue);
-  font-size:18px;
+  font-size:22px;
+  letter-spacing:1px;
 }
 
-/* ===== CARD ===== */
+/* ===== CARDS ===== */
 .card{
   background:linear-gradient(180deg,#0b1220,#020617);
   border:1px solid var(--border);
   border-radius:20px;
   padding:16px;
-  margin-bottom:12px;
+  margin-bottom:16px;
+  box-shadow:0 0 30px rgba(59,130,246,.15);
 }
 
 /* ===== LEVEL ===== */
@@ -90,7 +80,7 @@ header button{
   background:#020617;
   border-radius:8px;
   overflow:hidden;
-  margin-top:6px;
+  margin-top:8px;
 }
 #xpFill{
   height:100%;
@@ -101,20 +91,17 @@ header button{
 /* ===== BUTTON ===== */
 button{
   width:100%;
-  padding:14px;
-  border-radius:16px;
-  border:1px solid var(--border);
-  background:#020617;
-  color:var(--text);
-  font-size:15px;
-}
-button.primary{
-  background:linear-gradient(135deg,var(--blue),var(--purple));
+  padding:16px;
+  border-radius:18px;
   border:none;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:white;
+  font-size:16px;
   font-weight:700;
+  margin-top:10px;
 }
 
-/* ===== LIST ITEM ===== */
+/* ===== LIST ===== */
 .item{
   background:#020617;
   border:1px solid var(--border);
@@ -147,139 +134,56 @@ canvas{
 <div id="app">
 
 <header>
-  <button id="backBtn" class="hidden">←</button>
   <h1>Gym Log</h1>
 </header>
 
-<!-- HOME -->
-<section id="home">
-  <div class="card">
-    <div id="levelName">Hobby Fitness</div>
-    <div class="xpbar"><div id="xpFill"></div></div>
-    <small id="xpText">0 / 100 XP</small>
-  </div>
-  <button class="primary" onclick="openCategories()">🏋️ Trénink</button>
-</section>
+<div class="card">
+  <div id="levelName">Hobby Fitness</div>
+  <div class="xpbar"><div id="xpFill"></div></div>
+  <small id="xpText">0 / 100 XP</small>
+</div>
 
-<!-- CATEGORIES -->
-<section id="categories" class="hidden"></section>
-
-<!-- EXERCISES -->
-<section id="exercises" class="hidden">
-  <input id="search" placeholder="🔍 Hledat cvik">
-  <div id="exerciseList"></div>
-</section>
-
-<!-- LOG -->
-<section id="log" class="hidden">
-  <h3 id="exerciseTitle"></h3>
-  <input id="weight" type="number" placeholder="Váha (kg)">
-  <input id="sets" type="number" placeholder="Série">
-  <input id="reps" type="number" placeholder="Opakování">
-  <button class="primary" onclick="saveLog()">Uložit výkon</button>
-  <canvas id="chart" height="120"></canvas>
-</section>
+<button onclick="alert('Trénink část můžeš dál rozšiřovat 👊')">
+🏋️ Trénink
+</button>
 
 </div>
 
 <script>
-const $=id=>document.getElementById(id);
-const screens=["home","categories","exercises","log"];
-let stack=[],currentCat="",currentEx="";
+/* ===== XP SYSTEM ===== */
+let xp = Number(localStorage.getItem("xp") || 0);
 
-/* ===== DATABASE ===== */
-const db={
-Prsa:["Bench Press","Incline Bench","Dips","Chest Press"],
-Záda:["Pull-ups","Lat Pulldown","Barbell Row","Deadlift"],
-Ramena:["Overhead Press","Lateral Raise","Face Pull"],
-Nohy:["Squat","Leg Press","RDL","Calf Raise"],
-Ruce:["Biceps Curl","Hammer Curl","Triceps Pushdown"],
-Core:["Plank","Crunch","Hanging Leg Raise"]
-};
-
-/* ===== XP ===== */
-let xp=+localStorage.getItem("xp")||0;
-const levels=[
-{name:"Hobby Fitness",xp:0},
-{name:"Fitness Grinder",xp:100},
-{name:"Strength Builder",xp:300},
-{name:"Advanced Lifter",xp:700},
-{name:"Fitness Master",xp:1500}
+const levels = [
+  {name:"Hobby Fitness",xp:0},
+  {name:"Fitness Grinder",xp:100},
+  {name:"Strength Builder",xp:300},
+  {name:"Advanced Lifter",xp:700},
+  {name:"Fitness Master",xp:1500}
 ];
 
 function updateXP(){
-  let lvl=levels[0],next=levels[1].xp;
+  let lvl = levels[0];
+  let next = levels[1].xp;
+
   for(let i=levels.length-1;i>=0;i--){
     if(xp>=levels[i].xp){
-      lvl=levels[i];
-      next=levels[i+1]?.xp||levels[i].xp;
+      lvl = levels[i];
+      next = levels[i+1]?.xp || levels[i].xp;
       break;
     }
   }
-  $("levelName").textContent=lvl.name;
-  $("xpText").textContent=`${xp} / ${next} XP`;
-  $("xpFill").style.width=Math.min(100,xp/next*100)+"%";
+
+  document.getElementById("levelName").textContent = lvl.name;
+  document.getElementById("xpText").textContent = `${xp} / ${next} XP`;
+  document.getElementById("xpFill").style.width = Math.min(100, xp/next*100) + "%";
 }
 
-/* ===== NAV ===== */
-function show(s){
-  screens.forEach(x=>$(x).classList.add("hidden"));
-  $(s).classList.remove("hidden");
-  stack.push(s);
-  $("backBtn").classList.toggle("hidden",stack.length<=1);
-}
-$("backBtn").onclick=()=>{stack.pop();show(stack.pop()||"home")};
-
-/* ===== FLOW ===== */
-function openCategories(){
-  $("categories").innerHTML="";
-  Object.keys(db).forEach(c=>{
-    let d=document.createElement("div");
-    d.className="item";
-    d.textContent=c;
-    d.onclick=()=>openExercises(c);
-    $("categories").appendChild(d);
-  });
-  show("categories");
-}
-
-function openExercises(c){
-  currentCat=c;
-  $("exerciseList").innerHTML="";
-  $("search").value="";
-  db[c].forEach(addExercise);
-  $("search").oninput=e=>{
-    $("exerciseList").innerHTML="";
-    db[c].filter(x=>x.toLowerCase().includes(e.target.value.toLowerCase())).forEach(addExercise);
-  };
-  show("exercises");
-}
-
-function addExercise(e){
-  let d=document.createElement("div");
-  d.className="item";
-  d.textContent=e;
-  d.onclick=()=>openLog(e);
-  $("exerciseList").appendChild(d);
-}
-
-function openLog(e){
-  currentEx=e;
-  $("exerciseTitle").textContent=e;
-  show("log");
-}
-
-function saveLog(){
-  let w=+$("weight").value;
-  if(!w) return;
-  xp+=10;
-  localStorage.setItem("xp",xp);
-  updateXP();
-  $("weight").value="";
-}
-
-/* INIT */
 updateXP();
+
+/* ===== SERVICE WORKER ===== */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
 </script>
 
 </body>
