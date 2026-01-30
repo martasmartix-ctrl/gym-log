@@ -3,14 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <title>GYM LOG</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#020617">
-
 <link rel="manifest" href="manifest.json">
-
 <style>
 /* ===== iOS FULLSCREEN + NO WHITE BARS ===== */
 html, body {
@@ -20,7 +17,6 @@ html, body {
   background: #020617;
   overscroll-behavior: none;
 }
-
 body {
   min-height: 100svh;
   padding: env(safe-area-inset-top)
@@ -30,9 +26,7 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color: #e5e7eb;
 }
-
 .hidden { display: none; }
-
 #app {
   max-width: 480px;
   margin: 0 auto;
@@ -40,7 +34,6 @@ body {
   min-height: 100svh;
   background: #020617;
 }
-
 /* ===== SPLASH ===== */
 #splash {
   position: fixed;
@@ -51,7 +44,6 @@ body {
   justify-content: center;
   z-index: 50;
 }
-
 #splash h1 {
   font-size: 44px;
   letter-spacing: 6px;
@@ -59,7 +51,6 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-
 /* ===== UI ===== */
 button {
   width: 100%;
@@ -70,35 +61,31 @@ button {
   color: #e5e7eb;
   font-size: 16px;
 }
-
 button.primary {
   background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   border: none;
   font-weight: 700;
 }
-
 .item {
   border: 1px solid #1e293b;
   border-radius: 16px;
   padding: 14px;
   margin-bottom: 8px;
   background: #020617;
+  cursor: pointer; /* Make it look clickable */
 }
-
 header {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
 }
-
 header h1 {
   flex: 1;
   text-align: center;
   margin: 0;
   font-size: 20px;
 }
-
 header button {
   background: none;
   border: none;
@@ -107,37 +94,31 @@ header button {
 }
 </style>
 </head>
-
 <body>
-
 <div id="splash">
   <h1>GYM LOG</h1>
 </div>
-
 <div id="app" class="hidden">
-
 <header>
   <button id="backBtn" class="hidden">←</button>
   <h1>Gym Log</h1>
 </header>
-
 <section id="home">
   <button class="primary" id="startBtn">🏋️ Trénink</button>
 </section>
-
 <section id="categories" class="hidden"></section>
-
+<section id="exercises" class="hidden"></section>
 </div>
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-
   const splash = document.getElementById("splash");
   const app = document.getElementById("app");
   const startBtn = document.getElementById("startBtn");
   const backBtn = document.getElementById("backBtn");
   const home = document.getElementById("home");
   const categories = document.getElementById("categories");
+  const exercises = document.getElementById("exercises");
+  const headerTitle = document.querySelector("header h1");
 
   /* ===== SPLASH SAFE HIDE ===== */
   setTimeout(() => {
@@ -161,26 +142,45 @@ document.addEventListener("DOMContentLoaded", () => {
       const div = document.createElement("div");
       div.className = "item";
       div.textContent = cat;
+      div.onclick = () => {
+        exercises.innerHTML = "";
+        db[cat].forEach(ex => {
+          const exDiv = document.createElement("div");
+          exDiv.className = "item";
+          exDiv.textContent = ex;
+          // You can add onclick here if needed for further actions
+          exercises.appendChild(exDiv);
+        });
+        categories.classList.add("hidden");
+        exercises.classList.remove("hidden");
+        headerTitle.textContent = cat;
+      };
       categories.appendChild(div);
     });
     home.classList.add("hidden");
     categories.classList.remove("hidden");
     backBtn.classList.remove("hidden");
+    headerTitle.textContent = "Kategorie"; // Optional: Change title to "Categories"
   };
 
   backBtn.onclick = () => {
-    categories.classList.add("hidden");
-    home.classList.remove("hidden");
-    backBtn.classList.add("hidden");
+    if (!exercises.classList.contains("hidden")) {
+      exercises.classList.add("hidden");
+      categories.classList.remove("hidden");
+      headerTitle.textContent = "Kategorie";
+    } else if (!categories.classList.contains("hidden")) {
+      categories.classList.add("hidden");
+      home.classList.remove("hidden");
+      headerTitle.textContent = "Gym Log";
+      backBtn.classList.add("hidden");
+    }
   };
 
   /* ===== SERVICE WORKER ===== */
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js");
   }
-
 });
 </script>
-
 </body>
 </html>
