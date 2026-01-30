@@ -16,8 +16,10 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            background: #020617;
+            background: linear-gradient(to bottom, #020617, #0f172a); /* Gradient background for liveliness */
             overscroll-behavior: none;
+            background-attachment: fixed;
+            background-size: cover;
         }
         body {
             min-height: 100svh;
@@ -27,20 +29,26 @@
                      env(safe-area-inset-left);
             font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
             color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .hidden { display: none; }
         #app {
             max-width: 480px;
+            width: 100%;
             margin: 0 auto;
             padding: 16px;
             min-height: 100svh;
-            background: #020617;
+            background: transparent; /* Transparent to show gradient */
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); /* Glowing shadow for liveliness */
+            border-radius: 20px;
         }
         /* ===== SPLASH ===== */
         #splash {
             position: fixed;
             inset: 0;
-            background: #020617;
+            background: linear-gradient(to bottom, #020617, #0f172a);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -48,22 +56,26 @@
             animation: pulse 2s infinite;
         }
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
         }
         #splash h1 {
             font-size: 44px;
             letter-spacing: 6px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradient-shift 3s infinite;
+            animation: gradient-shift 3s infinite, blink 1s infinite alternate;
         }
         @keyframes gradient-shift {
             0% { background-position: 0%; }
             50% { background-position: 100%; }
             100% { background-position: 0%; }
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            100% { opacity: 0.7; }
         }
         /* ===== UI ===== */
         button {
@@ -71,21 +83,26 @@
             padding: 14px;
             border-radius: 16px;
             border: 1px solid #1e293b;
-            background: #020617;
+            background: linear-gradient(135deg, #020617, #0f172a);
             color: #e5e7eb;
             font-size: 16px;
             margin-bottom: 8px;
-            transition: transform 0.2s, background 0.3s;
+            transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+            animation: button-glow 2s infinite alternate;
+        }
+        @keyframes button-glow {
+            0% { box-shadow: 0 0 5px #3b82f6; }
+            100% { box-shadow: 0 0 15px #8b5cf6; }
         }
         button:hover {
             transform: scale(1.02);
-            background: #0f172a;
+            background: #1e293b;
         }
         button.primary {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
             border: none;
             font-weight: 700;
-            animation: shine 2s infinite;
+            animation: shine 2s infinite, blink 0.5s infinite alternate;
         }
         @keyframes shine {
             0% { background-position: 0%; }
@@ -96,12 +113,18 @@
             border-radius: 16px;
             padding: 14px;
             margin-bottom: 8px;
-            background: #020617;
+            background: linear-gradient(135deg, #020617, #0f172a);
             cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
+            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+            animation: item-pulse 3s infinite;
+        }
+        @keyframes item-pulse {
+            0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.5); }
+            100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
         }
         .item:hover {
-            background: #0f172a;
+            background: #1e293b;
             transform: translateY(-2px);
         }
         header {
@@ -115,6 +138,11 @@
             text-align: center;
             margin: 0;
             font-size: 20px;
+            animation: text-glow 2s infinite alternate;
+        }
+        @keyframes text-glow {
+            0% { text-shadow: 0 0 5px #3b82f6; }
+            100% { text-shadow: 0 0 15px #8b5cf6; }
         }
         header button {
             background: none;
@@ -124,7 +152,7 @@
             transition: color 0.3s;
         }
         header button:hover {
-            color: #8b5cf6;
+            color: #ec4899;
         }
         input {
             width: 100%;
@@ -134,11 +162,12 @@
             background: #0f172a;
             color: #e5e7eb;
             margin-bottom: 8px;
-            transition: border 0.3s;
+            transition: border 0.3s, box-shadow 0.3s;
         }
         input:focus {
             border: 1px solid #3b82f6;
             outline: none;
+            box-shadow: 0 0 10px #3b82f6;
         }
         .set-input {
             display: flex;
@@ -151,15 +180,16 @@
         .set-input button {
             width: auto;
             padding: 12px 20px;
-            background: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             border: none;
             color: white;
+            animation: blink 1s infinite alternate;
         }
         #currentSets .item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            animation: fadeIn 0.5s;
+            animation: fadeIn 0.5s, blink 2s infinite alternate;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -170,17 +200,18 @@
             background: #0f172a;
             border-radius: 16px;
             padding: 8px;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
         }
         .level-info {
             text-align: center;
             margin-bottom: 16px;
             font-size: 18px;
             color: #3b82f6;
-            animation: glow 1.5s infinite;
+            animation: glow 1.5s infinite, blink 0.8s infinite alternate;
         }
         @keyframes glow {
             0% { text-shadow: 0 0 5px #3b82f6; }
-            50% { text-shadow: 0 0 15px #3b82f6; }
+            50% { text-shadow: 0 0 15px #8b5cf6; }
             100% { text-shadow: 0 0 5px #3b82f6; }
         }
         #searchInput {
@@ -192,12 +223,25 @@
             border-radius: 8px;
             height: 10px;
             margin-top: 8px;
+            overflow: hidden;
         }
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
             border-radius: 8px;
             transition: width 0.5s;
+            animation: progress-shine 2s infinite;
+        }
+        @keyframes progress-shine {
+            0% { background-position: 0%; }
+            100% { background-position: 200%; }
+        }
+        .motivation-message {
+            text-align: center;
+            font-size: 16px;
+            color: #ec4899;
+            margin: 16px 0;
+            animation: blink 1.5s infinite;
         }
     </style>
 </head>
@@ -211,6 +255,7 @@
             <h1 id="headerTitle">Gym Log</h1>
         </header>
         <section id="home">
+            <div class="motivation-message">Zaznamenávej každý trénink a sleduj svůj pokrok! 💪🔥</div>
             <button class="primary" id="startTrainingBtn">🏋️ Začít Trénink</button>
             <button class="primary" id="viewProgressBtn">📊 Zobrazit Pokrok</button>
             <button class="primary" id="viewLevelsBtn">⭐ Úrovně</button>
@@ -224,6 +269,7 @@
             <div id="exerciseList"></div>
         </section>
         <section id="logging" class="hidden">
+            <div class="motivation-message">Přidej série a zlepšuj se! Každá série tě přibližuje k vyšší úrovni! 🚀</div>
             <div id="currentSets"></div>
             <div class="set-input">
                 <input type="number" id="weightInput" placeholder="Váha (kg)" min="0">
@@ -233,6 +279,7 @@
             <button class="primary" id="saveSessionBtn">Uložit Sezení</button>
         </section>
         <section id="progress" class="hidden">
+            <div class="motivation-message">Podívej se, jak se zlepšuješ! Pokračuj dál! 📈</div>
             <canvas id="graph" width="400" height="200"></canvas>
             <div id="history"></div>
         </section>
@@ -241,7 +288,7 @@
             <div class="progress-bar">
                 <div id="xpProgress" class="progress-fill"></div>
             </div>
-            <p>Motivace: Každá série ti dává XP. Zlepšuj se a dosáhni vyšších úrovní! 🎉</p>
+            <p class="motivation-message">Motivace: Každá série ti dává XP. Zlepšuj se a dosáhni vyšších úrovní! 🎉 Nepřestávej, tvůj streak je v ohrožení!</p>
             <canvas id="confettiCanvas" style="position: fixed; top: 0; left: 0; pointer-events: none; z-index: 100;"></canvas>
         </section>
     </div>
@@ -383,7 +430,7 @@
                 saveData(logs, user);
                 if (user.level > oldLevel) {
                     confetti.render();
-                    setTimeout(() => confetti.clear(), 3000);
+                    setTimeout(() => confetti.clear(), 5000); // Longer confetti for celebration
                 }
             }
 
@@ -543,7 +590,7 @@
                     logs[currentExercise].push({ date, sets: currentSessionSets });
                     addXP(currentSessionSets.length * 10); // 10 XP per set
                     saveData(logs, user);
-                    alert("Sezení uloženo! 🎉");
+                    alert("Sezení uloženo! 🎉 Pokračuj v tréninku!");
                     backToHome();
                 }
             };
@@ -553,7 +600,7 @@
                 showSection(progress);
                 headerTitle.textContent = `${currentExercise} Pokrok`;
                 if (!logs[currentExercise]) {
-                    historyDiv.innerHTML = "<p>Žádné data ještě. 😔</p>";
+                    historyDiv.innerHTML = "<p>Žádné data ještě. 😔 Začni trénovat!</p>";
                     return;
                 }
 
