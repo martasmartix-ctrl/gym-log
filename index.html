@@ -9,6 +9,7 @@
     <meta name="theme-color" content="#020617">
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/confetti-js@0.0.18/dist/index.min.js"></script>
     <style>
         /* ===== iOS FULLSCREEN + NO WHITE BARS ===== */
         html, body {
@@ -44,6 +45,12 @@
             align-items: center;
             justify-content: center;
             z-index: 50;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         #splash h1 {
             font-size: 44px;
@@ -51,6 +58,12 @@
             background: linear-gradient(90deg, #3b82f6, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            animation: gradient-shift 3s infinite;
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0%; }
+            50% { background-position: 100%; }
+            100% { background-position: 0%; }
         }
         /* ===== UI ===== */
         button {
@@ -62,11 +75,21 @@
             color: #e5e7eb;
             font-size: 16px;
             margin-bottom: 8px;
+            transition: transform 0.2s, background 0.3s;
+        }
+        button:hover {
+            transform: scale(1.02);
+            background: #0f172a;
         }
         button.primary {
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             border: none;
             font-weight: 700;
+            animation: shine 2s infinite;
+        }
+        @keyframes shine {
+            0% { background-position: 0%; }
+            100% { background-position: 200%; }
         }
         .item {
             border: 1px solid #1e293b;
@@ -75,6 +98,11 @@
             margin-bottom: 8px;
             background: #020617;
             cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        .item:hover {
+            background: #0f172a;
+            transform: translateY(-2px);
         }
         header {
             display: flex;
@@ -93,6 +121,10 @@
             border: none;
             color: #3b82f6;
             font-size: 20px;
+            transition: color 0.3s;
+        }
+        header button:hover {
+            color: #8b5cf6;
         }
         input {
             width: 100%;
@@ -102,22 +134,70 @@
             background: #0f172a;
             color: #e5e7eb;
             margin-bottom: 8px;
+            transition: border 0.3s;
+        }
+        input:focus {
+            border: 1px solid #3b82f6;
+            outline: none;
         }
         .set-input {
             display: flex;
             gap: 8px;
+            align-items: center;
         }
         .set-input input {
             flex: 1;
         }
+        .set-input button {
+            width: auto;
+            padding: 12px 20px;
+            background: #3b82f6;
+            border: none;
+            color: white;
+        }
+        #currentSets .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         #graph {
             margin-top: 16px;
+            background: #0f172a;
+            border-radius: 16px;
+            padding: 8px;
         }
         .level-info {
             text-align: center;
             margin-bottom: 16px;
             font-size: 18px;
             color: #3b82f6;
+            animation: glow 1.5s infinite;
+        }
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px #3b82f6; }
+            50% { text-shadow: 0 0 15px #3b82f6; }
+            100% { text-shadow: 0 0 5px #3b82f6; }
+        }
+        #searchInput {
+            margin-bottom: 16px;
+        }
+        .progress-bar {
+            width: 100%;
+            background: #1e293b;
+            border-radius: 8px;
+            height: 10px;
+            margin-top: 8px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 8px;
+            transition: width 0.5s;
         }
     </style>
 </head>
@@ -132,16 +212,22 @@
         </header>
         <section id="home">
             <button class="primary" id="startTrainingBtn">🏋️ Začít Trénink</button>
-            <button id="viewProgressBtn">📊 Zobrazit Pokrok</button>
-            <button id="viewLevelsBtn">⭐ Úrovně</button>
+            <button class="primary" id="viewProgressBtn">📊 Zobrazit Pokrok</button>
+            <button class="primary" id="viewLevelsBtn">⭐ Úrovně</button>
         </section>
-        <section id="categories" class="hidden"></section>
-        <section id="exercises" class="hidden"></section>
+        <section id="categories" class="hidden">
+            <input type="text" id="searchInput" placeholder="Hledej kategorii nebo cvik...">
+            <div id="categoryList"></div>
+        </section>
+        <section id="exercises" class="hidden">
+            <input type="text" id="exerciseSearchInput" placeholder="Hledej cvik...">
+            <div id="exerciseList"></div>
+        </section>
         <section id="logging" class="hidden">
             <div id="currentSets"></div>
             <div class="set-input">
-                <input type="number" id="weightInput" placeholder="Váha (kg)">
-                <input type="number" id="repsInput" placeholder="Opakování">
+                <input type="number" id="weightInput" placeholder="Váha (kg)" min="0">
+                <input type="number" id="repsInput" placeholder="Opakování" min="1">
                 <button id="addSetBtn">+</button>
             </div>
             <button class="primary" id="saveSessionBtn">Uložit Sezení</button>
@@ -152,7 +238,11 @@
         </section>
         <section id="levels" class="hidden">
             <div class="level-info" id="levelInfo"></div>
-            <p>Motivace: Každá série ti dává XP. Zlepšuj se a dosáhni vyšších úrovní!</p>
+            <div class="progress-bar">
+                <div id="xpProgress" class="progress-fill"></div>
+            </div>
+            <p>Motivace: Každá série ti dává XP. Zlepšuj se a dosáhni vyšších úrovní! 🎉</p>
+            <canvas id="confettiCanvas" style="position: fixed; top: 0; left: 0; pointer-events: none; z-index: 100;"></canvas>
         </section>
     </div>
     <script>
@@ -178,17 +268,27 @@
             const graphCanvas = document.getElementById("graph");
             const historyDiv = document.getElementById("history");
             const levelInfo = document.getElementById("levelInfo");
+            const searchInput = document.getElementById("searchInput");
+            const exerciseSearchInput = document.getElementById("exerciseSearchInput");
+            const categoryList = document.getElementById("categoryList");
+            const exerciseList = document.getElementById("exerciseList");
+            const xpProgress = document.getElementById("xpProgress");
+            const confettiCanvas = document.getElementById("confettiCanvas");
 
             let currentCategory = "";
             let currentExercise = "";
             let currentSessionSets = [];
             let chart;
+            let confetti;
 
             // ===== SPLASH SAFE HIDE =====
             setTimeout(() => {
                 splash.style.display = "none";
                 app.classList.remove("hidden");
-            }, 1000);
+            }, 1500);
+
+            // ===== CONFETTI SETUP =====
+            confetti = new ConfettiGenerator({ target: 'confettiCanvas' });
 
             // ===== DATABASE OF CATEGORIES AND EXERCISES =====
             const db = {
@@ -254,6 +354,9 @@
                 // Přidej další kategorie podle potřeby
             };
 
+            // Flatten all exercises for global search
+            const allExercises = Object.entries(db).flatMap(([cat, exs]) => exs.map(ex => ({ cat, ex })));
+
             // ===== DATA STORAGE =====
             function loadData() {
                 const logs = JSON.parse(localStorage.getItem('gymLogs')) || {};
@@ -270,17 +373,24 @@
 
             // ===== LEVELING SYSTEM =====
             function addXP(amount) {
+                const oldLevel = user.level;
                 user.xp += amount;
-                user.totalSets += amount / 10; // Předpoklad: 10 XP per set
+                user.totalSets += amount / 10;
                 while (user.xp >= user.level * 100) {
                     user.xp -= user.level * 100;
                     user.level++;
                 }
                 saveData(logs, user);
+                if (user.level > oldLevel) {
+                    confetti.render();
+                    setTimeout(() => confetti.clear(), 3000);
+                }
             }
 
             function showLevels() {
                 levelInfo.innerHTML = `Úroveň: ${user.level}<br>XP: ${user.xp} / ${user.level * 100}<br>Celkové Série: ${user.totalSets}`;
+                const progressPercent = (user.xp / (user.level * 100)) * 100;
+                xpProgress.style.width = `${progressPercent}%`;
             }
 
             // ===== NAVIGATION HELPERS =====
@@ -309,9 +419,9 @@
                 updateBackBtn(true);
             };
 
-            // ===== SHOW CATEGORIES =====
+            // ===== SHOW CATEGORIES WITH SEARCH =====
             function showCategories(mode) {
-                categories.innerHTML = "";
+                categoryList.innerHTML = "";
                 Object.keys(db).forEach(cat => {
                     const div = document.createElement("div");
                     div.className = "item";
@@ -320,16 +430,51 @@
                         currentCategory = cat;
                         showExercises(mode);
                     };
-                    categories.appendChild(div);
+                    categoryList.appendChild(div);
                 });
                 showSection(categories);
                 headerTitle.textContent = mode === "Trénink" ? "Kategorie" : "Vyber Partii pro Pokrok";
                 updateBackBtn(true);
+
+                // Global search for exercises
+                searchInput.oninput = () => {
+                    const query = searchInput.value.toLowerCase();
+                    categoryList.innerHTML = "";
+                    if (query) {
+                        const filtered = allExercises.filter(({ ex }) => ex.toLowerCase().includes(query));
+                        filtered.forEach(({ cat, ex }) => {
+                            const div = document.createElement("div");
+                            div.className = "item";
+                            div.innerHTML = `<strong>${ex}</strong> (${cat})`;
+                            div.onclick = () => {
+                                currentCategory = cat;
+                                currentExercise = ex;
+                                if (mode === "Trénink") {
+                                    startLogging();
+                                } else {
+                                    showProgress();
+                                }
+                            };
+                            categoryList.appendChild(div);
+                        });
+                    } else {
+                        Object.keys(db).forEach(cat => {
+                            const div = document.createElement("div");
+                            div.className = "item";
+                            div.textContent = cat;
+                            div.onclick = () => {
+                                currentCategory = cat;
+                                showExercises(mode);
+                            };
+                            categoryList.appendChild(div);
+                        });
+                    }
+                };
             }
 
-            // ===== SHOW EXERCISES =====
+            // ===== SHOW EXERCISES WITH SEARCH =====
             function showExercises(mode) {
-                exercises.innerHTML = "";
+                exerciseList.innerHTML = "";
                 db[currentCategory].forEach(ex => {
                     const div = document.createElement("div");
                     div.className = "item";
@@ -342,10 +487,30 @@
                             showProgress();
                         }
                     };
-                    exercises.appendChild(div);
+                    exerciseList.appendChild(div);
                 });
                 showSection(exercises);
                 headerTitle.textContent = currentCategory;
+                exerciseSearchInput.value = "";
+
+                exerciseSearchInput.oninput = () => {
+                    const query = exerciseSearchInput.value.toLowerCase();
+                    exerciseList.innerHTML = "";
+                    db[currentCategory].filter(ex => ex.toLowerCase().includes(query)).forEach(ex => {
+                        const div = document.createElement("div");
+                        div.className = "item";
+                        div.textContent = ex;
+                        div.onclick = () => {
+                            currentExercise = ex;
+                            if (mode === "Trénink") {
+                                startLogging();
+                            } else {
+                                showProgress();
+                            }
+                        };
+                        exerciseList.appendChild(div);
+                    });
+                };
             }
 
             // ===== LOGGING =====
@@ -363,10 +528,11 @@
                     currentSessionSets.push({ weight, reps });
                     const setDiv = document.createElement("div");
                     setDiv.className = "item";
-                    setDiv.textContent = `Váha: ${weight} kg, Opakování: ${reps}`;
+                    setDiv.innerHTML = `<span>Váha: ${weight} kg</span><span>Opakování: ${reps}</span>`;
                     currentSets.appendChild(setDiv);
                     weightInput.value = "";
                     repsInput.value = "";
+                    weightInput.focus();
                 }
             };
 
@@ -377,7 +543,7 @@
                     logs[currentExercise].push({ date, sets: currentSessionSets });
                     addXP(currentSessionSets.length * 10); // 10 XP per set
                     saveData(logs, user);
-                    alert("Sezení uloženo!");
+                    alert("Sezení uloženo! 🎉");
                     backToHome();
                 }
             };
@@ -387,7 +553,7 @@
                 showSection(progress);
                 headerTitle.textContent = `${currentExercise} Pokrok`;
                 if (!logs[currentExercise]) {
-                    historyDiv.innerHTML = "<p>Žádné data ještě.</p>";
+                    historyDiv.innerHTML = "<p>Žádné data ještě. 😔</p>";
                     return;
                 }
 
@@ -413,6 +579,9 @@
                     options: {
                         scales: {
                             y: { beginAtZero: false }
+                        },
+                        animation: {
+                            duration: 2000
                         }
                     }
                 });
