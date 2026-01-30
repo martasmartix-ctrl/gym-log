@@ -243,6 +243,26 @@
             margin: 16px 0;
             animation: blink 1.5s infinite;
         }
+        .overall-improvement {
+            text-align: center;
+            font-size: 18px;
+            color: #22c55e; /* Green for positive */
+            margin: 16px 0;
+            animation: pulse 2s infinite;
+        }
+        .overall-improvement.negative {
+            color: #ef4444; /* Red for negative */
+        }
+        @keyframes chart-pulse-green {
+            0% { border-color: rgba(34, 197, 94, 0.5); }
+            50% { border-color: rgba(34, 197, 94, 1); }
+            100% { border-color: rgba(34, 197, 94, 0.5); }
+        }
+        @keyframes chart-pulse-red {
+            0% { border-color: rgba(239, 68, 68, 0.5); }
+            50% { border-color: rgba(239, 68, 68, 1); }
+            100% { border-color: rgba(239, 68, 68, 0.5); }
+        }
     </style>
 </head>
 <body>
@@ -253,9 +273,11 @@
         <header>
             <button id="backBtn" class="hidden">←</button>
             <h1 id="headerTitle">Gym Log</h1>
+            <button id="homeBtn" class="hidden">🏠</button>
         </header>
         <section id="home">
             <div class="motivation-message">Zaznamenávej každý trénink a sleduj svůj pokrok! 💪🔥</div>
+            <div id="overallImprovement" class="overall-improvement"></div>
             <button class="primary" id="startTrainingBtn">🏋️ Začít Trénink</button>
             <button class="primary" id="viewProgressBtn">📊 Zobrazit Pokrok</button>
             <button class="primary" id="viewLevelsBtn">⭐ Úrovně</button>
@@ -297,6 +319,7 @@
             const splash = document.getElementById("splash");
             const app = document.getElementById("app");
             const backBtn = document.getElementById("backBtn");
+            const homeBtn = document.getElementById("homeBtn");
             const headerTitle = document.getElementById("headerTitle");
             const home = document.getElementById("home");
             const categories = document.getElementById("categories");
@@ -321,6 +344,7 @@
             const exerciseList = document.getElementById("exerciseList");
             const xpProgress = document.getElementById("xpProgress");
             const confettiCanvas = document.getElementById("confettiCanvas");
+            const overallImprovement = document.getElementById("overallImprovement");
 
             let currentCategory = "";
             let currentExercise = "";
@@ -332,6 +356,7 @@
             setTimeout(() => {
                 splash.style.display = "none";
                 app.classList.remove("hidden");
+                showOverallImprovement();
             }, 1500);
 
             // ===== CONFETTI SETUP =====
@@ -432,12 +457,41 @@
                     confetti.render();
                     setTimeout(() => confetti.clear(), 5000); // Longer confetti for celebration
                 }
+                showOverallImprovement();
             }
 
             function showLevels() {
                 levelInfo.innerHTML = `Úroveň: ${user.level}<br>XP: ${user.xp} / ${user.level * 100}<br>Celkové Série: ${user.totalSets}`;
                 const progressPercent = (user.xp / (user.level * 100)) * 100;
                 xpProgress.style.width = `${progressPercent}%`;
+            }
+
+            // ===== OVERALL IMPROVEMENT =====
+            function calculateOverallImprovement() {
+                let totalPercent = 0;
+                let count = 0;
+                Object.keys(logs).forEach(ex => {
+                    const data = logs[ex];
+                    if (data.length >= 2) {
+                        const first1RM = Math.max(...data[0].sets.map(s => s.weight * (1 + s.reps / 30)));
+                        const last1RM = Math.max(...data[data.length - 1].sets.map(s => s.weight * (1 + s.reps / 30)));
+                        const percent = ((last1RM - first1RM) / first1RM) * 100;
+                        totalPercent += percent;
+                        count++;
+                    }
+                });
+                if (count === 0) return 0;
+                return (totalPercent / count).toFixed(2);
+            }
+
+            function showOverallImprovement() {
+                const percent = calculateOverallImprovement();
+                overallImprovement.textContent = `Celkové zlepšení: ${percent > 0 ? '+' : ''}${percent}% oproti začátku!`;
+                if (percent < 0) {
+                    overallImprovement.classList.add("negative");
+                } else {
+                    overallImprovement.classList.remove("negative");
+                }
             }
 
             // ===== NAVIGATION HELPERS =====
@@ -448,7 +502,13 @@
 
             function updateBackBtn(visible) {
                 backBtn.classList.toggle("hidden", !visible);
+                homeBtn.classList.toggle("hidden", !visible);
             }
+
+            // ===== HOME BUTTON =====
+            homeBtn.onclick = () => {
+                backToHome();
+            };
 
             // ===== HOME BUTTONS =====
             startTrainingBtn.onclick = () => {
@@ -482,6 +542,7 @@
                 showSection(categories);
                 headerTitle.textContent = mode === "Trénink" ? "Kategorie" : "Vyber Partii pro Pokrok";
                 updateBackBtn(true);
+                homeBtn.classList.remove("hidden");
 
                 // Global search for exercises
                 searchInput.oninput = () => {
@@ -539,6 +600,7 @@
                 showSection(exercises);
                 headerTitle.textContent = currentCategory;
                 exerciseSearchInput.value = "";
+                homeBtn.classList.remove("hidden");
 
                 exerciseSearchInput.oninput = () => {
                     const query = exerciseSearchInput.value.toLowerCase();
@@ -566,6 +628,7 @@
                 currentSets.innerHTML = "";
                 showSection(logging);
                 headerTitle.textContent = currentExercise;
+                homeBtn.classList.remove("hidden");
             }
 
             addSetBtn.onclick = () => {
@@ -599,6 +662,7 @@
             function showProgress() {
                 showSection(progress);
                 headerTitle.textContent = `${currentExercise} Pokrok`;
+                homeBtn.classList.remove("hidden");
                 if (!logs[currentExercise]) {
                     historyDiv.innerHTML = "<p>Žádné data ještě. 😔 Začni trénovat!</p>";
                     return;
@@ -607,9 +671,22 @@
                 const data = logs[currentExercise];
                 const labels = data.map(d => d.date);
                 const oneRMs = data.map(d => {
-                    const max1RM = Math.max(...d.sets.map(s => s.weight * (1 + s.reps / 30)));
-                    return max1RM;
+                    return Math.max(...d.sets.map(s => s.weight * (1 + s.reps / 30)));
                 });
+
+                let lineColor = '#3b82f6';
+                let animationKeyframes = '';
+                if (oneRMs.length >= 2) {
+                    const last = oneRMs[oneRMs.length - 1];
+                    const prev = oneRMs[oneRMs.length - 2];
+                    if (last > prev) {
+                        lineColor = '#22c55e'; // Green
+                        animationKeyframes = 'chart-pulse-green';
+                    } else {
+                        lineColor = '#ef4444'; // Red
+                        animationKeyframes = 'chart-pulse-red';
+                    }
+                }
 
                 if (chart) chart.destroy();
                 chart = new Chart(graphCanvas, {
@@ -619,7 +696,7 @@
                         datasets: [{
                             label: 'Odhadovaný 1RM',
                             data: oneRMs,
-                            borderColor: '#3b82f6',
+                            borderColor: lineColor,
                             tension: 0.1
                         }]
                     },
@@ -629,9 +706,17 @@
                         },
                         animation: {
                             duration: 2000
+                        },
+                        elements: {
+                            line: {
+                                borderWidth: 3
+                            }
                         }
                     }
                 });
+
+                // Add pulsing animation to the canvas
+                graphCanvas.style.animation = `${animationKeyframes} 2s infinite`;
 
                 historyDiv.innerHTML = "";
                 data.forEach((session, i) => {
@@ -662,6 +747,7 @@
                 showSection(home);
                 headerTitle.textContent = "Gym Log";
                 updateBackBtn(false);
+                homeBtn.classList.add("hidden");
             }
 
             // ===== SERVICE WORKER =====
