@@ -43,6 +43,20 @@
             background: transparent; /* Transparent to show gradient */
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); /* Glowing shadow for liveliness */
             border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            text-align: center; /* Center text */
+        }
+        section {
+            width: 100%;
+            max-width: 400px; /* Slightly narrower for better fit on iPhone */
+        }
+        header {
+            width: 100%;
+            max-width: 400px;
+            font-size: 18px; /* Slightly smaller for better fit */
         }
         /* ===== SPLASH ===== */
         #splash {
@@ -351,6 +365,7 @@
             let currentSessionSets = [];
             let chart;
             let confetti;
+            let currentMode = ""; // To track Trénink or Pokrok
 
             // ===== SPLASH SAFE HIDE =====
             setTimeout(() => {
@@ -512,10 +527,12 @@
 
             // ===== HOME BUTTONS =====
             startTrainingBtn.onclick = () => {
+                currentMode = "Trénink";
                 showCategories("Trénink");
             };
 
             viewProgressBtn.onclick = () => {
+                currentMode = "Pokrok";
                 showCategories("Pokrok");
             };
 
@@ -600,7 +617,7 @@
                 showSection(exercises);
                 headerTitle.textContent = currentCategory;
                 exerciseSearchInput.value = "";
-                homeBtn.classList.remove("hidden");
+                updateBackBtn(true); // Ensure back button is visible here
 
                 exerciseSearchInput.oninput = () => {
                     const query = exerciseSearchInput.value.toLowerCase();
@@ -628,7 +645,7 @@
                 currentSets.innerHTML = "";
                 showSection(logging);
                 headerTitle.textContent = currentExercise;
-                homeBtn.classList.remove("hidden");
+                updateBackBtn(true);
             }
 
             addSetBtn.onclick = () => {
@@ -662,7 +679,7 @@
             function showProgress() {
                 showSection(progress);
                 headerTitle.textContent = `${currentExercise} Pokrok`;
-                homeBtn.classList.remove("hidden");
+                updateBackBtn(true);
                 if (!logs[currentExercise]) {
                     historyDiv.innerHTML = "<p>Žádné data ještě. 😔 Začni trénovat!</p>";
                     return;
@@ -733,11 +750,11 @@
             // ===== BACK BUTTON =====
             backBtn.onclick = () => {
                 if (!logging.classList.contains("hidden")) {
-                    showExercises("Trénink");
+                    showExercises(currentMode);
                 } else if (!progress.classList.contains("hidden")) {
-                    showExercises("Pokrok");
+                    showExercises(currentMode);
                 } else if (!exercises.classList.contains("hidden")) {
-                    showCategories(!progress.classList.contains("hidden") ? "Pokrok" : "Trénink");
+                    showCategories(currentMode);
                 } else if (!categories.classList.contains("hidden") || !levels.classList.contains("hidden")) {
                     backToHome();
                 }
