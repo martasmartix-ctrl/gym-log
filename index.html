@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 
 <style>
-/* ==== iOS FIX ==== */
+/* ===== iOS FULLSCREEN FIX ===== */
 html, body {
   margin: 0;
   padding: 0;
@@ -31,7 +31,7 @@ body {
   color: #e5e7eb;
 }
 
-/* ==== THEME ==== */
+/* ===== THEME ===== */
 :root{
   --bg:#020617;
   --card:#0b1220;
@@ -40,7 +40,7 @@ body {
   --muted:#94a3b8;
   --blue:#3b82f6;
   --purple:#8b5cf6;
-  --gold:#facc15;
+  --green:#22c55e;
 }
 
 .hidden{display:none}
@@ -53,11 +53,30 @@ body {
   background:#020617;
 }
 
-/* ==== HEADER ==== */
+/* ===== SPLASH ===== */
+#splash{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#020617;
+  z-index:20;
+}
+#splash h1{
+  font-size:46px;
+  letter-spacing:6px;
+  background:linear-gradient(90deg,var(--blue),var(--purple));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+/* ===== HEADER ===== */
 header{
   display:flex;
   align-items:center;
   gap:10px;
+  margin-bottom:10px;
 }
 header h1{
   flex:1;
@@ -69,11 +88,11 @@ header button{
   background:none;
   border:none;
   color:var(--blue);
-  font-size:18px;
+  font-size:20px;
 }
 
-/* ==== UI ==== */
-.item, .card{
+/* ===== UI ===== */
+.card,.item{
   background:linear-gradient(180deg,#0b1220,#020617);
   border:1px solid var(--border);
   border-radius:16px;
@@ -88,6 +107,7 @@ button{
   border:1px solid var(--border);
   background:#020617;
   color:var(--text);
+  font-size:15px;
 }
 button.primary{
   background:linear-gradient(135deg,var(--blue),var(--purple));
@@ -106,12 +126,15 @@ input{
 }
 
 canvas{width:100%;margin-top:10px}
+small{color:var(--muted)}
 </style>
 </head>
 
 <body>
 
-<div id="app">
+<div id="splash"><h1>GYM LOG</h1></div>
+
+<div id="app" class="hidden">
 
 <header>
   <button id="backBtn" class="hidden">←</button>
@@ -122,13 +145,16 @@ canvas{width:100%;margin-top:10px}
   <button class="primary" onclick="openCategories()">🏋️ Trénink</button>
 </section>
 
-<section id="categories" class="hidden"></section>
+<section id="categories" class="hidden">
+  <input id="newCategory" placeholder="➕ Přidat partii">
+  <button onclick="addCategory()">Přidat partii</button>
+</section>
 
 <section id="exercises" class="hidden">
   <input id="search" placeholder="🔍 Hledat cvik">
   <div id="exerciseList"></div>
   <input id="newExercise" placeholder="➕ Přidat vlastní cvik">
-  <button onclick="addExerciseCustom()">Přidat cvik</button>
+  <button onclick="addCustomExercise()">Přidat cvik</button>
 </section>
 
 <section id="log" class="hidden">
@@ -138,27 +164,36 @@ canvas{width:100%;margin-top:10px}
   <input id="reps" type="number" placeholder="Opakování">
   <button class="primary" onclick="saveLog()">Uložit výkon</button>
   <canvas id="chart" height="120"></canvas>
+  <div id="history"></div>
 </section>
 
 </div>
 
 <script>
+/* ===== SPLASH ===== */
+setTimeout(()=>{
+  splash.classList.add("hidden");
+  app.classList.remove("hidden");
+},1200);
+
 const $=id=>document.getElementById(id);
 const screens=["home","categories","exercises","log"];
 let stack=[],currentCat="",currentEx="";
 
-/* ==== DATABASE ==== */
+/* ===== DATABASE ===== */
 let db = JSON.parse(localStorage.getItem("db")) || {
-Prsa:["Bench Press","Incline Bench","Dips","Chest Press","Cable Fly"],
+Prsa:["Bench Press","Incline Bench","Dips","Chest Press","Cable Fly","Pec Deck"],
 Záda:["Pull-ups","Lat Pulldown","Barbell Row","Deadlift","Seated Row"],
-Ramena:["Overhead Press","Lateral Raise","Arnold Press","Face Pull"],
+Ramena:["Overhead Press","Arnold Press","Lateral Raise","Face Pull"],
 Nohy:["Squat","Leg Press","RDL","Lunges","Calf Raise"],
 Ruce:["Biceps Curl","Hammer Curl","Triceps Pushdown","Skull Crushers"],
 Core:["Plank","Crunch","Hanging Leg Raise"]
 };
-localStorage.setItem("db",JSON.stringify(db));
+saveDB();
 
-/* ==== NAV ==== */
+function saveDB(){localStorage.setItem("db",JSON.stringify(db));}
+
+/* ===== NAV ===== */
 function show(s){
   screens.forEach(x=>$(x).classList.add("hidden"));
   $(s).classList.remove("hidden");
@@ -167,7 +202,7 @@ function show(s){
 }
 backBtn.onclick=()=>{stack.pop();show(stack.pop()||"home")};
 
-/* ==== FLOW ==== */
+/* ===== FLOW ===== */
 function openCategories(){
   categories.innerHTML="";
   Object.keys(db).forEach(c=>{
@@ -178,6 +213,15 @@ function openCategories(){
     categories.appendChild(d);
   });
   show("categories");
+}
+
+function addCategory(){
+  let v=newCategory.value.trim();
+  if(!v)return;
+  db[v]=[];
+  saveDB();
+  newCategory.value="";
+  openCategories();
 }
 
 function openExercises(c){
@@ -200,11 +244,11 @@ function addExercise(e){
   exerciseList.appendChild(d);
 }
 
-function addExerciseCustom(){
+function addCustomExercise(){
   let v=newExercise.value.trim();
   if(!v)return;
   db[currentCat].push(v);
-  localStorage.setItem("db",JSON.stringify(db));
+  saveDB();
   addExercise(v);
   newExercise.value="";
 }
@@ -212,11 +256,11 @@ function addExerciseCustom(){
 function openLog(e){
   currentEx=e;
   exerciseTitle.textContent=e;
-  draw();
+  loadHistory();
   show("log");
 }
 
-/* ==== LOG ==== */
+/* ===== LOG ===== */
 function saveLog(){
   let w=+weight.value,s=+sets.value,r=+reps.value;
   if(!w||!s||!r)return;
@@ -224,12 +268,23 @@ function saveLog(){
   arr.push({w,s,r,date:new Date().toLocaleDateString("cs-CZ")});
   localStorage.setItem(currentEx,JSON.stringify(arr));
   weight.value=sets.value=reps.value="";
-  draw();
+  loadHistory();
 }
 
-/* ==== GRAPH ==== */
-function draw(){
+function loadHistory(){
   let arr=JSON.parse(localStorage.getItem(currentEx))||[];
+  history.innerHTML="";
+  arr.slice().reverse().forEach(x=>{
+    let d=document.createElement("div");
+    d.className="item";
+    d.innerHTML=`<strong>${x.w} kg</strong> · ${x.s}×${x.r}<br><small>📅 ${x.date}</small>`;
+    history.appendChild(d);
+  });
+  draw(arr);
+}
+
+/* ===== GRAPH ===== */
+function draw(arr){
   let c=chart,ctx=c.getContext("2d");
   ctx.clearRect(0,0,c.width,c.height);
   if(arr.length<2)return;
@@ -245,7 +300,7 @@ function draw(){
   ctx.stroke();
 }
 
-/* ==== SW ==== */
+/* ===== SW ===== */
 if("serviceWorker"in navigator){
   navigator.serviceWorker.register("service-worker.js");
 }
