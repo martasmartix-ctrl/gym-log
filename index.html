@@ -1,186 +1,458 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<title>GYM LOG</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#020617">
-<link rel="manifest" href="manifest.json">
-<style>
-/* ===== iOS FULLSCREEN + NO WHITE BARS ===== */
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background: #020617;
-  overscroll-behavior: none;
-}
-body {
-  min-height: 100svh;
-  padding: env(safe-area-inset-top)
-           env(safe-area-inset-right)
-           env(safe-area-inset-bottom)
-           env(safe-area-inset-left);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #e5e7eb;
-}
-.hidden { display: none; }
-#app {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 16px;
-  min-height: 100svh;
-  background: #020617;
-}
-/* ===== SPLASH ===== */
-#splash {
-  position: fixed;
-  inset: 0;
-  background: #020617;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-}
-#splash h1 {
-  font-size: 44px;
-  letter-spacing: 6px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-/* ===== UI ===== */
-button {
-  width: 100%;
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px solid #1e293b;
-  background: #020617;
-  color: #e5e7eb;
-  font-size: 16px;
-}
-button.primary {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  border: none;
-  font-weight: 700;
-}
-.item {
-  border: 1px solid #1e293b;
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 8px;
-  background: #020617;
-  cursor: pointer; /* Make it look clickable */
-}
-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-header h1 {
-  flex: 1;
-  text-align: center;
-  margin: 0;
-  font-size: 20px;
-}
-header button {
-  background: none;
-  border: none;
-  color: #3b82f6;
-  font-size: 20px;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>GYM LOG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#020617">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ===== iOS FULLSCREEN + NO WHITE BARS ===== */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #020617;
+            overscroll-behavior: none;
+        }
+        body {
+            min-height: 100svh;
+            padding: env(safe-area-inset-top)
+                     env(safe-area-inset-right)
+                     env(safe-area-inset-bottom)
+                     env(safe-area-inset-left);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #e5e7eb;
+        }
+        .hidden { display: none; }
+        #app {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            min-height: 100svh;
+            background: #020617;
+        }
+        /* ===== SPLASH ===== */
+        #splash {
+            position: fixed;
+            inset: 0;
+            background: #020617;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        #splash h1 {
+            font-size: 44px;
+            letter-spacing: 6px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* ===== UI ===== */
+        button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid #1e293b;
+            background: #020617;
+            color: #e5e7eb;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        button.primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            font-weight: 700;
+        }
+        .item {
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 14px;
+            margin-bottom: 8px;
+            background: #020617;
+            cursor: pointer;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        header h1 {
+            flex: 1;
+            text-align: center;
+            margin: 0;
+            font-size: 20px;
+        }
+        header button {
+            background: none;
+            border: none;
+            color: #3b82f6;
+            font-size: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            background: #0f172a;
+            color: #e5e7eb;
+            margin-bottom: 8px;
+        }
+        .set-input {
+            display: flex;
+            gap: 8px;
+        }
+        .set-input input {
+            flex: 1;
+        }
+        #graph {
+            margin-top: 16px;
+        }
+        .level-info {
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 18px;
+            color: #3b82f6;
+        }
+    </style>
 </head>
 <body>
-<div id="splash">
-  <h1>GYM LOG</h1>
-</div>
-<div id="app" class="hidden">
-<header>
-  <button id="backBtn" class="hidden">←</button>
-  <h1>Gym Log</h1>
-</header>
-<section id="home">
-  <button class="primary" id="startBtn">🏋️ Trénink</button>
-</section>
-<section id="categories" class="hidden"></section>
-<section id="exercises" class="hidden"></section>
-</div>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const splash = document.getElementById("splash");
-  const app = document.getElementById("app");
-  const startBtn = document.getElementById("startBtn");
-  const backBtn = document.getElementById("backBtn");
-  const home = document.getElementById("home");
-  const categories = document.getElementById("categories");
-  const exercises = document.getElementById("exercises");
-  const headerTitle = document.querySelector("header h1");
+    <div id="splash">
+        <h1>GYM LOG</h1>
+    </div>
+    <div id="app" class="hidden">
+        <header>
+            <button id="backBtn" class="hidden">←</button>
+            <h1 id="headerTitle">Gym Log</h1>
+        </header>
+        <section id="home">
+            <button class="primary" id="startTrainingBtn">🏋️ Začít Trénink</button>
+            <button id="viewProgressBtn">📊 Zobrazit Pokrok</button>
+            <button id="viewLevelsBtn">⭐ Úrovně</button>
+        </section>
+        <section id="categories" class="hidden"></section>
+        <section id="exercises" class="hidden"></section>
+        <section id="logging" class="hidden">
+            <div id="currentSets"></div>
+            <div class="set-input">
+                <input type="number" id="weightInput" placeholder="Váha (kg)">
+                <input type="number" id="repsInput" placeholder="Opakování">
+                <button id="addSetBtn">+</button>
+            </div>
+            <button class="primary" id="saveSessionBtn">Uložit Sezení</button>
+        </section>
+        <section id="progress" class="hidden">
+            <canvas id="graph" width="400" height="200"></canvas>
+            <div id="history"></div>
+        </section>
+        <section id="levels" class="hidden">
+            <div class="level-info" id="levelInfo"></div>
+            <p>Motivace: Každá série ti dává XP. Zlepšuj se a dosáhni vyšších úrovní!</p>
+        </section>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const splash = document.getElementById("splash");
+            const app = document.getElementById("app");
+            const backBtn = document.getElementById("backBtn");
+            const headerTitle = document.getElementById("headerTitle");
+            const home = document.getElementById("home");
+            const categories = document.getElementById("categories");
+            const exercises = document.getElementById("exercises");
+            const logging = document.getElementById("logging");
+            const progress = document.getElementById("progress");
+            const levels = document.getElementById("levels");
+            const startTrainingBtn = document.getElementById("startTrainingBtn");
+            const viewProgressBtn = document.getElementById("viewProgressBtn");
+            const viewLevelsBtn = document.getElementById("viewLevelsBtn");
+            const addSetBtn = document.getElementById("addSetBtn");
+            const saveSessionBtn = document.getElementById("saveSessionBtn");
+            const weightInput = document.getElementById("weightInput");
+            const repsInput = document.getElementById("repsInput");
+            const currentSets = document.getElementById("currentSets");
+            const graphCanvas = document.getElementById("graph");
+            const historyDiv = document.getElementById("history");
+            const levelInfo = document.getElementById("levelInfo");
 
-  /* ===== SPLASH SAFE HIDE ===== */
-  setTimeout(() => {
-    splash.style.display = "none";
-    app.classList.remove("hidden");
-  }, 1000);
+            let currentCategory = "";
+            let currentExercise = "";
+            let currentSessionSets = [];
+            let chart;
 
-  /* ===== DATABASE ===== */
-  const db = {
-    Prsa: ["Bench Press", "Incline Bench", "Dips"],
-    Záda: ["Pull-ups", "Lat Pulldown", "Deadlift"],
-    Nohy: ["Squat", "Leg Press", "Lunges"],
-    Ramena: ["Overhead Press", "Lateral Raise"],
-    Ruce: ["Biceps Curl", "Triceps Pushdown"]
-  };
+            // ===== SPLASH SAFE HIDE =====
+            setTimeout(() => {
+                splash.style.display = "none";
+                app.classList.remove("hidden");
+            }, 1000);
 
-  /* ===== NAV ===== */
-  startBtn.onclick = () => {
-    categories.innerHTML = "";
-    Object.keys(db).forEach(cat => {
-      const div = document.createElement("div");
-      div.className = "item";
-      div.textContent = cat;
-      div.onclick = () => {
-        exercises.innerHTML = "";
-        db[cat].forEach(ex => {
-          const exDiv = document.createElement("div");
-          exDiv.className = "item";
-          exDiv.textContent = ex;
-          // You can add onclick here if needed for further actions
-          exercises.appendChild(exDiv);
+            // ===== DATABASE OF CATEGORIES AND EXERCISES =====
+            const db = {
+                "Prsa": [
+                    "Bench Press", "Incline Bench Press", "Decline Bench Press", "Dumbbell Bench Press", "Dumbbell Flyes",
+                    "Cable Flyes", "Push-ups", "Dips", "Machine Chest Press", "Pec Deck", "Svend Press", "Around the Worlds",
+                    "Plate Press", "Chest Squeeze", "Incline Dumbbell Press", "Decline Dumbbell Press", "Hex Press",
+                    "Landmine Press", "Close Grip Bench Press", "Wide Grip Bench Press", "Pause Bench Press"
+                ],
+                "Záda": [
+                    "Pull-ups", "Chin-ups", "Lat Pulldown", "Seated Row", "Bent Over Row", "Deadlift", "Romanian Deadlift",
+                    "T-Bar Row", "Face Pulls", "Inverted Row", "Single Arm Dumbbell Row", "Barbell Row", "Pendlay Row",
+                    "Rack Pulls", "Good Mornings", "Hyperextensions", "Superman", "Bird Dog", "Shrugs", "Farmer's Walk",
+                    "Yates Row", "Meadows Row", "Kroc Row", "Helms Row"
+                ],
+                "Nohy": [
+                    "Squat", "Front Squat", "Back Squat", "Goblet Squat", "Leg Press", "Hack Squat", "Lunges", "Walking Lunges",
+                    "Bulgarian Split Squat", "Step-ups", "Calf Raises", "Seated Calf Raise", "Leg Extension", "Leg Curl",
+                    "Romanian Deadlift", "Stiff Leg Deadlift", "Glute Bridge", "Hip Thrust", "Sumo Squat", "Pistol Squat",
+                    "Box Jump", "Jump Squat", "Wall Sit", "Donkey Kicks", "Fire Hydrants"
+                ],
+                "Ramena": [
+                    "Overhead Press", "Military Press", "Dumbbell Shoulder Press", "Arnold Press", "Lateral Raise",
+                    "Front Raise", "Rear Delt Fly", "Face Pull", "Upright Row", "Shrugs", "Push Press", "Jerk",
+                    "Handstand Push-up", "Pike Push-up", "Cuban Press", "External Rotation", "Internal Rotation",
+                    "Plate Front Raise", "Bus Driver", "Shoulder Circles", "Band Pull Apart", "Reverse Fly"
+                ],
+                "Biceps": [
+                    "Biceps Curl", "Dumbbell Curl", "Barbell Curl", "EZ Bar Curl", "Hammer Curl", "Concentration Curl",
+                    "Preacher Curl", "Cable Curl", "Incline Dumbbell Curl", "Spider Curl", "Drag Curl", "Zottman Curl",
+                    "21s", "Reverse Curl", "Wrist Curl", "Chin-ups", "Close Grip Pull-up", "Bicep Squeeze",
+                    "Isometric Hold", "Negative Curls"
+                ],
+                "Triceps": [
+                    "Triceps Pushdown", "Skull Crusher", "Close Grip Bench Press", "Dips", "Overhead Triceps Extension",
+                    "Dumbbell Kickback", "Rope Pushdown", "Diamond Push-ups", "Bench Dips", "French Press",
+                    "Triceps Kickback", "Cable Overhead Extension", "Lying Triceps Extension", "Seated Triceps Press",
+                    "Reverse Grip Pushdown", "JM Press", "Tate Press", "Floor Press", "Band Pushdown"
+                ],
+                "Břicho": [
+                    "Crunches", "Sit-ups", "Leg Raises", "Hanging Leg Raise", "Plank", "Side Plank", "Russian Twist",
+                    "Bicycle Crunch", "Mountain Climbers", "Flutter Kicks", "Scissor Kicks", "Toe Touches", "V-ups",
+                    "Dragon Flag", "Windshield Wipers", "Ab Wheel Rollout", "Cable Crunch", "Woodchoppers",
+                    "Reverse Crunch", "Heel Taps", "Bird Dog", "Dead Bug"
+                ],
+                "Lýtka": [
+                    "Standing Calf Raise", "Seated Calf Raise", "Donkey Calf Raise", "Calf Raise on Leg Press",
+                    "Single Leg Calf Raise", "Jump Rope", "Box Jumps", "Farmer's Walk on Toes", "Tibialis Raise",
+                    "Calf Stretch", "Wall Calf Raise"
+                ],
+                "Předloktí": [
+                    "Wrist Curl", "Reverse Wrist Curl", "Farmer's Walk", "Plate Pinch", "Gripper", "Hammer Curl",
+                    "Towel Pull-up", "Fat Grip Curl", "Wrist Roller", "Finger Curls"
+                ],
+                "Trapézy": [
+                    "Shrugs", "Dumbbell Shrugs", "Barbell Shrugs", "Farmer's Walk", "Rack Pulls", "Upright Row",
+                    "Face Pull", "Power Clean", "Snatch", "High Pull"
+                ],
+                "Celé Tělo": [
+                    "Burpees", "Clean and Jerk", "Snatch", "Thrusters", "Kettlebell Swing", "Turkish Get-up",
+                    "Bear Crawl", "Farmer's Carry", "Sled Push", "Battle Ropes"
+                ]
+                // Přidej další kategorie podle potřeby
+            };
+
+            // ===== DATA STORAGE =====
+            function loadData() {
+                const logs = JSON.parse(localStorage.getItem('gymLogs')) || {};
+                const user = JSON.parse(localStorage.getItem('gymUser')) || { level: 1, xp: 0, totalSets: 0 };
+                return { logs, user };
+            }
+
+            function saveData(logs, user) {
+                localStorage.setItem('gymLogs', JSON.stringify(logs));
+                localStorage.setItem('gymUser', JSON.stringify(user));
+            }
+
+            let { logs, user } = loadData();
+
+            // ===== LEVELING SYSTEM =====
+            function addXP(amount) {
+                user.xp += amount;
+                user.totalSets += amount / 10; // Předpoklad: 10 XP per set
+                while (user.xp >= user.level * 100) {
+                    user.xp -= user.level * 100;
+                    user.level++;
+                }
+                saveData(logs, user);
+            }
+
+            function showLevels() {
+                levelInfo.innerHTML = `Úroveň: ${user.level}<br>XP: ${user.xp} / ${user.level * 100}<br>Celkové Série: ${user.totalSets}`;
+            }
+
+            // ===== NAVIGATION HELPERS =====
+            function showSection(section) {
+                [home, categories, exercises, logging, progress, levels].forEach(s => s.classList.add("hidden"));
+                section.classList.remove("hidden");
+            }
+
+            function updateBackBtn(visible) {
+                backBtn.classList.toggle("hidden", !visible);
+            }
+
+            // ===== HOME BUTTONS =====
+            startTrainingBtn.onclick = () => {
+                showCategories("Trénink");
+            };
+
+            viewProgressBtn.onclick = () => {
+                showCategories("Pokrok");
+            };
+
+            viewLevelsBtn.onclick = () => {
+                showSection(levels);
+                showLevels();
+                headerTitle.textContent = "Úrovně";
+                updateBackBtn(true);
+            };
+
+            // ===== SHOW CATEGORIES =====
+            function showCategories(mode) {
+                categories.innerHTML = "";
+                Object.keys(db).forEach(cat => {
+                    const div = document.createElement("div");
+                    div.className = "item";
+                    div.textContent = cat;
+                    div.onclick = () => {
+                        currentCategory = cat;
+                        showExercises(mode);
+                    };
+                    categories.appendChild(div);
+                });
+                showSection(categories);
+                headerTitle.textContent = mode === "Trénink" ? "Kategorie" : "Vyber Partii pro Pokrok";
+                updateBackBtn(true);
+            }
+
+            // ===== SHOW EXERCISES =====
+            function showExercises(mode) {
+                exercises.innerHTML = "";
+                db[currentCategory].forEach(ex => {
+                    const div = document.createElement("div");
+                    div.className = "item";
+                    div.textContent = ex;
+                    div.onclick = () => {
+                        currentExercise = ex;
+                        if (mode === "Trénink") {
+                            startLogging();
+                        } else {
+                            showProgress();
+                        }
+                    };
+                    exercises.appendChild(div);
+                });
+                showSection(exercises);
+                headerTitle.textContent = currentCategory;
+            }
+
+            // ===== LOGGING =====
+            function startLogging() {
+                currentSessionSets = [];
+                currentSets.innerHTML = "";
+                showSection(logging);
+                headerTitle.textContent = currentExercise;
+            }
+
+            addSetBtn.onclick = () => {
+                const weight = parseFloat(weightInput.value);
+                const reps = parseInt(repsInput.value);
+                if (weight > 0 && reps > 0) {
+                    currentSessionSets.push({ weight, reps });
+                    const setDiv = document.createElement("div");
+                    setDiv.className = "item";
+                    setDiv.textContent = `Váha: ${weight} kg, Opakování: ${reps}`;
+                    currentSets.appendChild(setDiv);
+                    weightInput.value = "";
+                    repsInput.value = "";
+                }
+            };
+
+            saveSessionBtn.onclick = () => {
+                if (currentSessionSets.length > 0) {
+                    const date = new Date().toISOString().split('T')[0];
+                    if (!logs[currentExercise]) logs[currentExercise] = [];
+                    logs[currentExercise].push({ date, sets: currentSessionSets });
+                    addXP(currentSessionSets.length * 10); // 10 XP per set
+                    saveData(logs, user);
+                    alert("Sezení uloženo!");
+                    backToHome();
+                }
+            };
+
+            // ===== PROGRESS =====
+            function showProgress() {
+                showSection(progress);
+                headerTitle.textContent = `${currentExercise} Pokrok`;
+                if (!logs[currentExercise]) {
+                    historyDiv.innerHTML = "<p>Žádné data ještě.</p>";
+                    return;
+                }
+
+                const data = logs[currentExercise];
+                const labels = data.map(d => d.date);
+                const oneRMs = data.map(d => {
+                    const max1RM = Math.max(...d.sets.map(s => s.weight * (1 + s.reps / 30)));
+                    return max1RM;
+                });
+
+                if (chart) chart.destroy();
+                chart = new Chart(graphCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Odhadovaný 1RM',
+                            data: oneRMs,
+                            borderColor: '#3b82f6',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: { beginAtZero: false }
+                        }
+                    }
+                });
+
+                historyDiv.innerHTML = "";
+                data.forEach((session, i) => {
+                    const sessDiv = document.createElement("div");
+                    sessDiv.className = "item";
+                    sessDiv.innerHTML = `<strong>${session.date}</strong><br>`;
+                    session.sets.forEach((s, j) => {
+                        sessDiv.innerHTML += `Série ${j+1}: ${s.weight} kg x ${s.reps}<br>`;
+                    });
+                    historyDiv.appendChild(sessDiv);
+                });
+            }
+
+            // ===== BACK BUTTON =====
+            backBtn.onclick = () => {
+                if (!logging.classList.contains("hidden")) {
+                    showExercises("Trénink");
+                } else if (!progress.classList.contains("hidden")) {
+                    showExercises("Pokrok");
+                } else if (!exercises.classList.contains("hidden")) {
+                    showCategories(!progress.classList.contains("hidden") ? "Pokrok" : "Trénink");
+                } else if (!categories.classList.contains("hidden") || !levels.classList.contains("hidden")) {
+                    backToHome();
+                }
+            };
+
+            function backToHome() {
+                showSection(home);
+                headerTitle.textContent = "Gym Log";
+                updateBackBtn(false);
+            }
+
+            // ===== SERVICE WORKER =====
+            if ("serviceWorker" in navigator) {
+                navigator.serviceWorker.register("service-worker.js");
+            }
         });
-        categories.classList.add("hidden");
-        exercises.classList.remove("hidden");
-        headerTitle.textContent = cat;
-      };
-      categories.appendChild(div);
-    });
-    home.classList.add("hidden");
-    categories.classList.remove("hidden");
-    backBtn.classList.remove("hidden");
-    headerTitle.textContent = "Kategorie"; // Optional: Change title to "Categories"
-  };
-
-  backBtn.onclick = () => {
-    if (!exercises.classList.contains("hidden")) {
-      exercises.classList.add("hidden");
-      categories.classList.remove("hidden");
-      headerTitle.textContent = "Kategorie";
-    } else if (!categories.classList.contains("hidden")) {
-      categories.classList.add("hidden");
-      home.classList.remove("hidden");
-      headerTitle.textContent = "Gym Log";
-      backBtn.classList.add("hidden");
-    }
-  };
-
-  /* ===== SERVICE WORKER ===== */
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-  }
-});
-</script>
+    </script>
 </body>
 </html>
