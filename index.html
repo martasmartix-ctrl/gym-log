@@ -1,19 +1,36 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#020617">
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-  }
-</script>
-
 <meta charset="UTF-8">
 <title>GYM LOG</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#020617">
+
+<link rel="manifest" href="manifest.json">
 
 <style>
+/* ===== iOS SAFE AREA FIX ===== */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #020617;
+}
+
+body {
+  min-height: 100vh;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #e5e7eb;
+}
+
+/* ===== THEME ===== */
 :root{
   --bg:#020617;
   --card:#0b1220;
@@ -22,233 +39,121 @@
   --muted:#94a3b8;
   --blue:#3b82f6;
   --purple:#8b5cf6;
-  --pink:#ec4899;
-  --green:#22c55e;
   --gold:#facc15;
 }
 
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:system-ui;
-  background:radial-gradient(circle at top,#0b1220 0%,#020617 60%);
-  color:var(--text);
-}
-
-/* SPLASH */
-#splash{
-  position:fixed;inset:0;
-  display:flex;justify-content:center;align-items:center;
-  background:black;z-index:100;
-  animation:splashOut 1.6s forwards;
-}
-#splash h1{
-  font-size:56px;
-  letter-spacing:10px;
-  background:linear-gradient(90deg,var(--blue),var(--purple),var(--pink));
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  animation:glow 1s infinite alternate;
-}
-@keyframes glow{
-  from{filter:drop-shadow(0 0 10px var(--blue))}
-  to{filter:drop-shadow(0 0 35px var(--pink))}
-}
-@keyframes splashOut{
-  80%{opacity:1}
-  100%{opacity:0;visibility:hidden}
-}
-
-.hidden{display:none}
-
 #app{
   max-width:480px;
-  margin:20px auto;
-  background:linear-gradient(180deg,#0b1220,#020617);
-  border-radius:26px;
-  padding:16px;
-  border:1px solid var(--border);
-  box-shadow:0 0 40px rgba(59,130,246,.2);
+  margin:0 auto;
+  padding:20px;
+  min-height:100vh;
 }
 
-/* HEADER */
+/* ===== HEADER ===== */
 header{
-  display:flex;align-items:center;gap:10px;
+  text-align:center;
+  margin-bottom:20px;
 }
 header h1{
-  flex:1;text-align:center;
-  font-size:20px;letter-spacing:1px;
-}
-header button{
-  background:none;border:none;
-  color:var(--blue);font-size:20px;
+  margin:0;
+  font-size:22px;
+  letter-spacing:1px;
 }
 
-/* BUTTONS */
-button{
-  width:100%;
-  padding:14px;
-  margin:6px 0;
-  border-radius:18px;
+/* ===== CARDS ===== */
+.card{
+  background:linear-gradient(180deg,#0b1220,#020617);
   border:1px solid var(--border);
-  background:#020617;
-  color:var(--text);
-  font-size:15px;
-  transition:.15s;
-}
-button.primary{
-  background:linear-gradient(135deg,var(--blue),var(--purple));
-  border:none;font-weight:700;
-}
-button:hover{
-  transform:translateY(-2px);
-  box-shadow:0 0 25px rgba(139,92,246,.35);
+  border-radius:20px;
+  padding:16px;
+  margin-bottom:16px;
+  box-shadow:0 0 30px rgba(59,130,246,.15);
 }
 
-/* INPUT */
-input{
-  width:100%;
-  padding:12px;
-  margin:6px 0;
-  border-radius:14px;
-  border:1px solid var(--border);
-  background:#020617;
-  color:var(--text);
-}
-
-/* ITEMS */
-.item{
-  padding:14px;
-  border-radius:18px;
-  border:1px solid var(--border);
-  margin-bottom:6px;
-  cursor:pointer;
-}
-.item.pr{
-  border-color:var(--gold);
+/* ===== LEVEL ===== */
+#levelName{
   color:var(--gold);
-  box-shadow:0 0 20px rgba(250,204,21,.4);
+  font-weight:700;
 }
-
-/* LEVEL HUD */
-#levelName{color:var(--gold)}
 .xpbar{
-  height:10px;background:#020617;
-  border-radius:8px;overflow:hidden;
+  height:10px;
+  background:#020617;
+  border-radius:8px;
+  overflow:hidden;
+  margin-top:8px;
 }
 #xpFill{
   height:100%;
   width:0%;
-  background:linear-gradient(90deg,var(--gold),var(--green));
-  box-shadow:0 0 15px rgba(34,197,94,.6);
+  background:linear-gradient(90deg,var(--gold),var(--blue));
 }
 
-/* GRAPH */
+/* ===== BUTTON ===== */
+button{
+  width:100%;
+  padding:16px;
+  border-radius:18px;
+  border:none;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:white;
+  font-size:16px;
+  font-weight:700;
+  margin-top:10px;
+}
+
+/* ===== LIST ===== */
+.item{
+  background:#020617;
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:8px;
+}
+
+/* ===== INPUT ===== */
+input{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#020617;
+  color:var(--text);
+  margin-bottom:8px;
+}
+
+/* ===== GRAPH ===== */
 canvas{
-  margin-top:12px;
-  filter:drop-shadow(0 0 14px rgba(59,130,246,.5));
-}
-
-/* SCREEN */
-.screen{animation:fade .25s ease}
-@keyframes fade{
-  from{opacity:0;transform:translateY(8px)}
-  to{opacity:1}
+  width:100%;
+  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="splash"><h1>GYM LOG</h1></div>
-
-<div id="app" class="hidden">
+<div id="app">
 
 <header>
-  <button id="backBtn" class="hidden">←</button>
   <h1>Gym Log</h1>
 </header>
 
-<section id="home" class="screen">
-  <div class="item">
-    <strong id="levelName">Hobby Fitness</strong>
-    <div class="xpbar"><div id="xpFill"></div></div>
-    <small id="xpText">0 / 100 XP</small>
-  </div>
-  <button class="primary" onclick="openCategories()">🏋️ Trénink</button>
-</section>
+<div class="card">
+  <div id="levelName">Hobby Fitness</div>
+  <div class="xpbar"><div id="xpFill"></div></div>
+  <small id="xpText">0 / 100 XP</small>
+</div>
 
-<section id="categories" class="screen hidden"></section>
-
-<section id="exercises" class="screen hidden">
-  <input id="search" placeholder="🔍 Hledat cvik">
-  <div id="exerciseList"></div>
-  <button onclick="addCustomExercise()">➕ Přidat vlastní cvik</button>
-</section>
-
-<section id="log" class="screen hidden">
-  <h3 id="exerciseTitle"></h3>
-  <input id="weight" type="number" placeholder="Váha (kg)">
-  <input id="sets" type="number" placeholder="Série">
-  <input id="reps" type="number" placeholder="Opakování">
-  <button class="primary" onclick="saveLog()">Uložit výkon</button>
-  <canvas id="chart" height="120"></canvas>
-  <div id="history"></div>
-</section>
+<button onclick="alert('Trénink část můžeš dál rozšiřovat 👊')">
+🏋️ Trénink
+</button>
 
 </div>
 
 <script>
-const $=id=>document.getElementById(id);
-const screens=["home","categories","exercises","log"];
-let stack=[],currentCat="",currentEx="";
+/* ===== XP SYSTEM ===== */
+let xp = Number(localStorage.getItem("xp") || 0);
 
-/* ===== SNAPSHOT DEFAULT DB (JEN PRO KONTROLU) ===== */
-const defaultDBSnapshot = {
-  Prsa:[
-    "Bench Press","Incline Bench Press","Decline Bench Press",
-    "Dumbbell Bench Press","Chest Press","Pec Deck",
-    "Cable Fly","Dumbbell Fly","Dips","Smith Bench"
-  ],
-  Záda:[
-    "Pull-ups","Chin-ups","Lat Pulldown","Wide Grip Pulldown",
-    "Barbell Row","T-Bar Row","Seated Row","Machine Row",
-    "Deadlift","Rack Pull","Straight Arm Pulldown"
-  ],
-  Ramena:[
-    "Overhead Press","Arnold Press","Dumbbell Shoulder Press",
-    "Lateral Raise","Front Raise","Rear Delt Fly",
-    "Face Pull","Cable Lateral Raise","Upright Row"
-  ],
-  Nohy:[
-    "Back Squat","Front Squat","Hack Squat","Leg Press",
-    "Romanian Deadlift","Stiff Leg Deadlift",
-    "Walking Lunges","Bulgarian Split Squat",
-    "Leg Curl","Leg Extension",
-    "Standing Calf Raise","Seated Calf Raise"
-  ],
-  Ruce:[
-    "Barbell Curl","EZ Curl","Dumbbell Curl","Hammer Curl",
-    "Preacher Curl","Cable Curl",
-    "Triceps Pushdown","Overhead Extension",
-    "Skull Crushers","Close Grip Bench"
-  ],
-  Core:[
-    "Plank","Side Plank","Crunch","Cable Crunch",
-    "Hanging Leg Raise","Ab Wheel Rollout"
-  ],
-  Kardio:[
-    "Treadmill","Bike","Rowing Machine","Stairmaster",
-    "Jump Rope","Air Bike","Elliptical"
-  ]
-};
-
-/* ===== DATABASE (BEZE ZMĚNY) ===== */
-let db = JSON.parse(localStorage.getItem("exerciseDB")) || JSON.parse(JSON.stringify(defaultDBSnapshot));
-
-/* XP */
-let xp=+localStorage.getItem("xp")||0;
-const levels=[
+const levels = [
   {name:"Hobby Fitness",xp:0},
   {name:"Fitness Grinder",xp:100},
   {name:"Strength Builder",xp:300},
@@ -256,163 +161,29 @@ const levels=[
   {name:"Fitness Master",xp:1500}
 ];
 
-/* NAV */
-function show(s){
-  screens.forEach(x=>$(x).classList.add("hidden"));
-  $(s).classList.remove("hidden");
-  stack.push(s);
-  $("backBtn").classList.toggle("hidden",stack.length<=1);
-}
-$("backBtn").onclick=()=>{
-  stack.pop();
-  show(stack.pop()||"home");
-};
-
-/* HOME */
-function openCategories(){
-  $("categories").innerHTML="";
-  Object.keys(db).forEach(c=>{
-    let d=document.createElement("div");
-    d.className="item";
-    d.textContent=c;
-    d.onclick=()=>openExercises(c);
-    $("categories").appendChild(d);
-  });
-  show("categories");
-}
-
-/* EXERCISES */
-function openExercises(c){
-  currentCat=c;
-  $("exerciseList").innerHTML="";
-  $("search").value="";
-  db[c].forEach(addExercise);
-  $("search").oninput=e=>{
-    $("exerciseList").innerHTML="";
-    db[c].filter(x=>x.toLowerCase().includes(e.target.value.toLowerCase())).forEach(addExercise);
-  };
-  show("exercises");
-}
-
-function addExercise(e){
-  let d=document.createElement("div");
-  d.className="item";
-
-  const isDefault = defaultDBSnapshot[currentCat]?.includes(e);
-
-  d.innerHTML = `
-    <span>${e}</span>
-    ${isDefault ? "" : `<button style="float:right" onclick="deleteExercise('${e}')">🗑️</button>`}
-  `;
-
-  d.onclick = (ev) => {
-    if(ev.target.tagName === "BUTTON") return;
-    openLog(e);
-  };
-
-  $("exerciseList").appendChild(d);
-}
-
-/* CUSTOM EXERCISE */
-function addCustomExercise(){
-  const name=prompt("Název cviku:");
-  if(!name)return;
-  if(db[currentCat].some(e=>e.toLowerCase()===name.toLowerCase())){
-    alert("Cvik už existuje");
-    return;
-  }
-  db[currentCat].push(name);
-  localStorage.setItem("exerciseDB",JSON.stringify(db));
-  openExercises(currentCat);
-}
-
-/* DELETE CUSTOM EXERCISE */
-function deleteExercise(name){
-  if(!confirm(`Opravdu smazat cvik "${name}"?`)) return;
-  db[currentCat]=db[currentCat].filter(e=>e!==name);
-  localStorage.setItem("exerciseDB",JSON.stringify(db));
-  localStorage.removeItem(name);
-  openExercises(currentCat);
-}
-
-/* LOG */
-function openLog(e){
-  currentEx=e;
-  $("exerciseTitle").textContent=e;
-  loadHistory();
-  show("log");
-}
-function saveLog(){
-  let w=+$("weight").value,s=+$("sets").value,r=+$("reps").value;
-  if(!w||!s||!r)return;
-  let arr=JSON.parse(localStorage.getItem(currentEx))||[];
-  let prev=arr.length?Math.max(...arr.map(x=>x.w)):0;
-  arr.push({w,s,r,date:new Date().toISOString()});
-  localStorage.setItem(currentEx,JSON.stringify(arr));
-  if(w>prev){
-    let diff=w-prev;
-    if(diff>=10) xp+=25;
-    else if(diff>=5) xp+=10;
-    localStorage.setItem("xp",xp);
-    updateXP();
-  }
-  loadHistory();
-}
-
-function loadHistory(){
-  let arr=JSON.parse(localStorage.getItem(currentEx))||[];
-  $("history").innerHTML="";
-  if(!arr.length)return;
-  let max=Math.max(...arr.map(x=>x.w));
-  arr.slice().reverse().forEach(x=>{
-    let d=document.createElement("div");
-    d.className="item"+(x.w===max?" pr":"");
-    d.innerHTML=`
-      <strong>${x.w} kg</strong> · ${x.s}×${x.r}
-      <br><small>${new Date(x.date).toLocaleDateString("cs-CZ")}</small>
-    `;
-    $("history").appendChild(d);
-  });
-  draw(arr.slice(-8));
-}
-
-/* GRAPH */
-function draw(arr){
-  let c=$("chart"),ctx=c.getContext("2d");
-  ctx.clearRect(0,0,c.width,c.height);
-  let m=Math.max(...arr.map(x=>x.w));
-  ctx.strokeStyle="#3b82f6";
-  ctx.lineWidth=4;
-  ctx.beginPath();
-  arr.forEach((x,i)=>{
-    let X=i*(c.width/(arr.length-1));
-    let Y=c.height-(x.w/m)*c.height;
-    i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);
-  });
-  ctx.stroke();
-}
-
-/* XP */
 function updateXP(){
-  let lvl=levels[0],next=levels[1].xp;
+  let lvl = levels[0];
+  let next = levels[1].xp;
+
   for(let i=levels.length-1;i>=0;i--){
     if(xp>=levels[i].xp){
-      lvl=levels[i];
-      next=levels[i+1]?.xp||levels[i].xp;
+      lvl = levels[i];
+      next = levels[i+1]?.xp || levels[i].xp;
       break;
     }
   }
-  $("levelName").textContent=lvl.name;
-  $("xpText").textContent=`${xp} / ${next} XP`;
-  $("xpFill").style.width=Math.min(100,xp/next*100)+"%";
+
+  document.getElementById("levelName").textContent = lvl.name;
+  document.getElementById("xpText").textContent = `${xp} / ${next} XP`;
+  document.getElementById("xpFill").style.width = Math.min(100, xp/next*100) + "%";
 }
 
-/* INIT */
-window.onload=()=>{
-  $("app").classList.remove("hidden");
-  show("home");
-  updateXP();
-};
+updateXP();
+
+/* ===== SERVICE WORKER ===== */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
 </script>
 
 </body>
