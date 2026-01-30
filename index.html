@@ -170,11 +170,16 @@ small{color:var(--muted)}
 </div>
 
 <script>
+  
 /* ===== SPLASH ===== */
+const splashEl = document.getElementById("splash");
+const appEl = document.getElementById("app");
+
 setTimeout(()=>{
-  splash.classList.add("hidden");
-  app.classList.remove("hidden");
+  splashEl.classList.add("hidden");
+  appEl.classList.remove("hidden");
 },1200);
+
 
 const $=id=>document.getElementById(id);
 const screens=["home","categories","exercises","log"];
@@ -308,3 +313,4 @@ if("serviceWorker"in navigator){
 
 </body>
 </html>
+
