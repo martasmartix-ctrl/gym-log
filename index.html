@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 
 <style>
-/* ===== iOS FULLSCREEN FIX ===== */
+/* ===== iOS FULLSCREEN + NO WHITE BARS ===== */
 html, body {
   margin: 0;
   padding: 0;
@@ -31,108 +31,88 @@ body {
   color: #e5e7eb;
 }
 
-/* ===== THEME ===== */
-:root{
-  --bg:#020617;
-  --card:#0b1220;
-  --border:#1e293b;
-  --text:#e5e7eb;
-  --muted:#94a3b8;
-  --blue:#3b82f6;
-  --purple:#8b5cf6;
-  --green:#22c55e;
-}
+.hidden { display: none; }
 
-.hidden{display:none}
-
-#app{
-  max-width:480px;
-  margin:0 auto;
-  padding:16px;
-  min-height:100svh;
-  background:#020617;
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+  min-height: 100svh;
+  background: #020617;
 }
 
 /* ===== SPLASH ===== */
-#splash{
-  position:fixed;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#020617;
-  z-index:20;
-}
-#splash h1{
-  font-size:46px;
-  letter-spacing:6px;
-  background:linear-gradient(90deg,var(--blue),var(--purple));
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
+#splash {
+  position: fixed;
+  inset: 0;
+  background: #020617;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
 }
 
-/* ===== HEADER ===== */
-header{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:10px;
-}
-header h1{
-  flex:1;
-  text-align:center;
-  margin:0;
-  font-size:20px;
-}
-header button{
-  background:none;
-  border:none;
-  color:var(--blue);
-  font-size:20px;
+#splash h1 {
+  font-size: 44px;
+  letter-spacing: 6px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* ===== UI ===== */
-.card,.item{
-  background:linear-gradient(180deg,#0b1220,#020617);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:14px;
-  margin-bottom:8px;
+button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid #1e293b;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 16px;
 }
 
-button{
-  width:100%;
-  padding:14px;
-  border-radius:16px;
-  border:1px solid var(--border);
-  background:#020617;
-  color:var(--text);
-  font-size:15px;
-}
-button.primary{
-  background:linear-gradient(135deg,var(--blue),var(--purple));
-  border:none;
-  font-weight:700;
+button.primary {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border: none;
+  font-weight: 700;
 }
 
-input{
-  width:100%;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  background:#020617;
-  color:var(--text);
-  margin-bottom:6px;
+.item {
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 8px;
+  background: #020617;
 }
 
-canvas{width:100%;margin-top:10px}
-small{color:var(--muted)}
+header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+header h1 {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  font-size: 20px;
+}
+
+header button {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 20px;
+}
 </style>
 </head>
 
 <body>
 
-<div id="splash"><h1>GYM LOG</h1></div>
+<div id="splash">
+  <h1>GYM LOG</h1>
+</div>
 
 <div id="app" class="hidden">
 
@@ -142,175 +122,65 @@ small{color:var(--muted)}
 </header>
 
 <section id="home">
-  <button class="primary" onclick="openCategories()">🏋️ Trénink</button>
+  <button class="primary" id="startBtn">🏋️ Trénink</button>
 </section>
 
-<section id="categories" class="hidden">
-  <input id="newCategory" placeholder="➕ Přidat partii">
-  <button onclick="addCategory()">Přidat partii</button>
-</section>
-
-<section id="exercises" class="hidden">
-  <input id="search" placeholder="🔍 Hledat cvik">
-  <div id="exerciseList"></div>
-  <input id="newExercise" placeholder="➕ Přidat vlastní cvik">
-  <button onclick="addCustomExercise()">Přidat cvik</button>
-</section>
-
-<section id="log" class="hidden">
-  <h3 id="exerciseTitle"></h3>
-  <input id="weight" type="number" placeholder="Váha (kg)">
-  <input id="sets" type="number" placeholder="Série">
-  <input id="reps" type="number" placeholder="Opakování">
-  <button class="primary" onclick="saveLog()">Uložit výkon</button>
-  <canvas id="chart" height="120"></canvas>
-  <div id="history"></div>
-</section>
+<section id="categories" class="hidden"></section>
 
 </div>
 
 <script>
-  
-/* ===== SPLASH ===== */
-const splashEl = document.getElementById("splash");
-const appEl = document.getElementById("app");
+document.addEventListener("DOMContentLoaded", () => {
 
-setTimeout(()=>{
-  splashEl.classList.add("hidden");
-  appEl.classList.remove("hidden");
-},1200);
+  const splash = document.getElementById("splash");
+  const app = document.getElementById("app");
+  const startBtn = document.getElementById("startBtn");
+  const backBtn = document.getElementById("backBtn");
+  const home = document.getElementById("home");
+  const categories = document.getElementById("categories");
 
+  /* ===== SPLASH SAFE HIDE ===== */
+  setTimeout(() => {
+    splash.style.display = "none";
+    app.classList.remove("hidden");
+  }, 1000);
 
-const $=id=>document.getElementById(id);
-const screens=["home","categories","exercises","log"];
-let stack=[],currentCat="",currentEx="";
-
-/* ===== DATABASE ===== */
-let db = JSON.parse(localStorage.getItem("db")) || {
-Prsa:["Bench Press","Incline Bench","Dips","Chest Press","Cable Fly","Pec Deck"],
-Záda:["Pull-ups","Lat Pulldown","Barbell Row","Deadlift","Seated Row"],
-Ramena:["Overhead Press","Arnold Press","Lateral Raise","Face Pull"],
-Nohy:["Squat","Leg Press","RDL","Lunges","Calf Raise"],
-Ruce:["Biceps Curl","Hammer Curl","Triceps Pushdown","Skull Crushers"],
-Core:["Plank","Crunch","Hanging Leg Raise"]
-};
-saveDB();
-
-function saveDB(){localStorage.setItem("db",JSON.stringify(db));}
-
-/* ===== NAV ===== */
-function show(s){
-  screens.forEach(x=>$(x).classList.add("hidden"));
-  $(s).classList.remove("hidden");
-  stack.push(s);
-  backBtn.classList.toggle("hidden",stack.length<=1);
-}
-backBtn.onclick=()=>{stack.pop();show(stack.pop()||"home")};
-
-/* ===== FLOW ===== */
-function openCategories(){
-  categories.innerHTML="";
-  Object.keys(db).forEach(c=>{
-    let d=document.createElement("div");
-    d.className="item";
-    d.textContent=c;
-    d.onclick=()=>openExercises(c);
-    categories.appendChild(d);
-  });
-  show("categories");
-}
-
-function addCategory(){
-  let v=newCategory.value.trim();
-  if(!v)return;
-  db[v]=[];
-  saveDB();
-  newCategory.value="";
-  openCategories();
-}
-
-function openExercises(c){
-  currentCat=c;
-  exerciseList.innerHTML="";
-  search.value="";
-  db[c].forEach(addExercise);
-  search.oninput=e=>{
-    exerciseList.innerHTML="";
-    db[c].filter(x=>x.toLowerCase().includes(e.target.value.toLowerCase())).forEach(addExercise);
+  /* ===== DATABASE ===== */
+  const db = {
+    Prsa: ["Bench Press", "Incline Bench", "Dips"],
+    Záda: ["Pull-ups", "Lat Pulldown", "Deadlift"],
+    Nohy: ["Squat", "Leg Press", "Lunges"],
+    Ramena: ["Overhead Press", "Lateral Raise"],
+    Ruce: ["Biceps Curl", "Triceps Pushdown"]
   };
-  show("exercises");
-}
 
-function addExercise(e){
-  let d=document.createElement("div");
-  d.className="item";
-  d.textContent=e;
-  d.onclick=()=>openLog(e);
-  exerciseList.appendChild(d);
-}
+  /* ===== NAV ===== */
+  startBtn.onclick = () => {
+    categories.innerHTML = "";
+    Object.keys(db).forEach(cat => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.textContent = cat;
+      categories.appendChild(div);
+    });
+    home.classList.add("hidden");
+    categories.classList.remove("hidden");
+    backBtn.classList.remove("hidden");
+  };
 
-function addCustomExercise(){
-  let v=newExercise.value.trim();
-  if(!v)return;
-  db[currentCat].push(v);
-  saveDB();
-  addExercise(v);
-  newExercise.value="";
-}
+  backBtn.onclick = () => {
+    categories.classList.add("hidden");
+    home.classList.remove("hidden");
+    backBtn.classList.add("hidden");
+  };
 
-function openLog(e){
-  currentEx=e;
-  exerciseTitle.textContent=e;
-  loadHistory();
-  show("log");
-}
+  /* ===== SERVICE WORKER ===== */
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
 
-/* ===== LOG ===== */
-function saveLog(){
-  let w=+weight.value,s=+sets.value,r=+reps.value;
-  if(!w||!s||!r)return;
-  let arr=JSON.parse(localStorage.getItem(currentEx))||[];
-  arr.push({w,s,r,date:new Date().toLocaleDateString("cs-CZ")});
-  localStorage.setItem(currentEx,JSON.stringify(arr));
-  weight.value=sets.value=reps.value="";
-  loadHistory();
-}
-
-function loadHistory(){
-  let arr=JSON.parse(localStorage.getItem(currentEx))||[];
-  history.innerHTML="";
-  arr.slice().reverse().forEach(x=>{
-    let d=document.createElement("div");
-    d.className="item";
-    d.innerHTML=`<strong>${x.w} kg</strong> · ${x.s}×${x.r}<br><small>📅 ${x.date}</small>`;
-    history.appendChild(d);
-  });
-  draw(arr);
-}
-
-/* ===== GRAPH ===== */
-function draw(arr){
-  let c=chart,ctx=c.getContext("2d");
-  ctx.clearRect(0,0,c.width,c.height);
-  if(arr.length<2)return;
-  let m=Math.max(...arr.map(x=>x.w));
-  ctx.strokeStyle="#3b82f6";
-  ctx.lineWidth=3;
-  ctx.beginPath();
-  arr.forEach((x,i)=>{
-    let X=i*(c.width/(arr.length-1));
-    let Y=c.height-(x.w/m)*c.height;
-    i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);
-  });
-  ctx.stroke();
-}
-
-/* ===== SW ===== */
-if("serviceWorker"in navigator){
-  navigator.serviceWorker.register("service-worker.js");
-}
+});
 </script>
 
 </body>
 </html>
-
