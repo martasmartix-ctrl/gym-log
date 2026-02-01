@@ -1,777 +1,575 @@
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-    <meta charset="UTF-8">
-    <title>GYM LOG</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#020617">
-    <link rel="manifest" href="manifest.json">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/confetti-js@0.0.18/dist/index.min.js"></script>
-    <style>
-        /* ===== iOS FULLSCREEN + NO WHITE BARS ===== */
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            background: linear-gradient(to bottom, #020617, #0f172a); /* Gradient background for liveliness */
-            overscroll-behavior: none;
-            background-attachment: fixed;
-            background-size: cover;
-        }
-        body {
-            min-height: 100svh;
-            padding: env(safe-area-inset-top)
-                     env(safe-area-inset-right)
-                     env(safe-area-inset-bottom)
-                     env(safe-area-inset-left);
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #e5e7eb;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .hidden { display: none; }
-        #app {
-            max-width: 480px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 16px;
-            min-height: 100svh;
-            background: transparent; /* Transparent to show gradient */
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); /* Glowing shadow for liveliness */
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center; /* Center content vertically */
-            align-items: center; /* Center content horizontally */
-            text-align: center; /* Center text */
-        }
-        section {
-            width: 100%;
-            max-width: 400px; /* Slightly narrower for better fit on iPhone */
-        }
-        header {
-            width: 100%;
-            max-width: 400px;
-            font-size: 18px; /* Slightly smaller for better fit */
-        }
-        /* ===== SPLASH ===== */
-        #splash {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(to bottom, #020617, #0f172a);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        #splash h1 {
-            font-size: 44px;
-            letter-spacing: 6px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradient-shift 3s infinite, blink 1s infinite alternate;
-        }
-        @keyframes gradient-shift {
-            0% { background-position: 0%; }
-            50% { background-position: 100%; }
-            100% { background-position: 0%; }
-        }
-        @keyframes blink {
-            0% { opacity: 1; }
-            100% { opacity: 0.7; }
-        }
-        /* ===== UI ===== */
-        button {
-            width: 100%;
-            padding: 14px;
-            border-radius: 16px;
-            border: 1px solid #1e293b;
-            background: linear-gradient(135deg, #020617, #0f172a);
-            color: #e5e7eb;
-            font-size: 16px;
-            margin-bottom: 8px;
-            transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
-            animation: button-glow 2s infinite alternate;
-        }
-        @keyframes button-glow {
-            0% { box-shadow: 0 0 5px #3b82f6; }
-            100% { box-shadow: 0 0 15px #8b5cf6; }
-        }
-        button:hover {
-            transform: scale(1.02);
-            background: #1e293b;
-        }
-        button.primary {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
-            border: none;
-            font-weight: 700;
-            animation: shine 2s infinite, blink 0.5s infinite alternate;
-        }
-        @keyframes shine {
-            0% { background-position: 0%; }
-            100% { background-position: 200%; }
-        }
-        .item {
-            border: 1px solid #1e293b;
-            border-radius: 16px;
-            padding: 14px;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #020617, #0f172a);
-            cursor: pointer;
-            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
-            animation: item-pulse 3s infinite;
-        }
-        @keyframes item-pulse {
-            0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
-            50% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.5); }
-            100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
-        }
-        .item:hover {
-            background: #1e293b;
-            transform: translateY(-2px);
-        }
-        header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-        header h1 {
-            flex: 1;
-            text-align: center;
-            margin: 0;
-            font-size: 20px;
-            animation: text-glow 2s infinite alternate;
-        }
-        @keyframes text-glow {
-            0% { text-shadow: 0 0 5px #3b82f6; }
-            100% { text-shadow: 0 0 15px #8b5cf6; }
-        }
-        header button {
-            background: none;
-            border: none;
-            color: #3b82f6;
-            font-size: 20px;
-            transition: color 0.3s;
-        }
-        header button:hover {
-            color: #ec4899;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #1e293b;
-            background: #0f172a;
-            color: #e5e7eb;
-            margin-bottom: 8px;
-            transition: border 0.3s, box-shadow 0.3s;
-        }
-        input:focus {
-            border: 1px solid #3b82f6;
-            outline: none;
-            box-shadow: 0 0 10px #3b82f6;
-        }
-        .set-input {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .set-input input {
-            flex: 1;
-        }
-        .set-input button {
-            width: auto;
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border: none;
-            color: white;
-            animation: blink 1s infinite alternate;
-        }
-        #currentSets .item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            animation: fadeIn 0.5s, blink 2s infinite alternate;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        #graph {
-            margin-top: 16px;
-            background: #0f172a;
-            border-radius: 16px;
-            padding: 8px;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-        }
-        .level-info {
-            text-align: center;
-            margin-bottom: 16px;
-            font-size: 18px;
-            color: #3b82f6;
-            animation: glow 1.5s infinite, blink 0.8s infinite alternate;
-        }
-        @keyframes glow {
-            0% { text-shadow: 0 0 5px #3b82f6; }
-            50% { text-shadow: 0 0 15px #8b5cf6; }
-            100% { text-shadow: 0 0 5px #3b82f6; }
-        }
-        #searchInput {
-            margin-bottom: 16px;
-        }
-        .progress-bar {
-            width: 100%;
-            background: #1e293b;
-            border-radius: 8px;
-            height: 10px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
-            border-radius: 8px;
-            transition: width 0.5s;
-            animation: progress-shine 2s infinite;
-        }
-        @keyframes progress-shine {
-            0% { background-position: 0%; }
-            100% { background-position: 200%; }
-        }
-        .motivation-message {
-            text-align: center;
-            font-size: 16px;
-            color: #ec4899;
-            margin: 16px 0;
-            animation: blink 1.5s infinite;
-        }
-        .overall-improvement {
-            text-align: center;
-            font-size: 18px;
-            color: #22c55e; /* Green for positive */
-            margin: 16px 0;
-            animation: pulse 2s infinite;
-        }
-        .overall-improvement.negative {
-            color: #ef4444; /* Red for negative */
-        }
-        @keyframes chart-pulse-green {
-            0% { border-color: rgba(34, 197, 94, 0.5); }
-            50% { border-color: rgba(34, 197, 94, 1); }
-            100% { border-color: rgba(34, 197, 94, 0.5); }
-        }
-        @keyframes chart-pulse-red {
-            0% { border-color: rgba(239, 68, 68, 0.5); }
-            50% { border-color: rgba(239, 68, 68, 1); }
-            100% { border-color: rgba(239, 68, 68, 0.5); }
-        }
-    </style>
-</head>
-<body>
-    <div id="splash">
-        <h1>GYM LOG</h1>
-    </div>
-    <div id="app" class="hidden">
-        <header>
-            <button id="backBtn" class="hidden">←</button>
-            <h1 id="headerTitle">Gym Log</h1>
-            <button id="homeBtn" class="hidden">🏠</button>
-        </header>
-        <section id="home">
-            <div class="motivation-message">Zaznamenávej každý trénink a sleduj svůj pokrok! 💪🔥</div>
-            <div id="overallImprovement" class="overall-improvement"></div>
-            <button class="primary" id="startTrainingBtn">🏋️ Začít Trénink</button>
-            <button class="primary" id="viewProgressBtn">📊 Zobrazit Pokrok</button>
-            <button class="primary" id="viewLevelsBtn">⭐ Úrovně</button>
-        </section>
-        <section id="categories" class="hidden">
-            <input type="text" id="searchInput" placeholder="Hledej kategorii nebo cvik...">
-            <div id="categoryList"></div>
-        </section>
-        <section id="exercises" class="hidden">
-            <input type="text" id="exerciseSearchInput" placeholder="Hledej cvik...">
-            <div id="exerciseList"></div>
-        </section>
-        <section id="logging" class="hidden">
-            <div class="motivation-message">Přidej série a zlepšuj se! Každá série tě přibližuje k vyšší úrovni! 🚀</div>
-            <div id="currentSets"></div>
-            <div class="set-input">
-                <input type="number" id="weightInput" placeholder="Váha (kg)" min="0">
-                <input type="number" id="repsInput" placeholder="Opakování" min="1">
-                <button id="addSetBtn">+</button>
-            </div>
-            <button class="primary" id="saveSessionBtn">Uložit Sezení</button>
-        </section>
-        <section id="progress" class="hidden">
-            <div class="motivation-message">Podívej se, jak se zlepšuješ! Pokračuj dál! 📈</div>
-            <canvas id="graph" width="400" height="200"></canvas>
-            <div id="history"></div>
-        </section>
-        <section id="levels" class="hidden">
-            <div class="level-info" id="levelInfo"></div>
-            <div class="progress-bar">
-                <div id="xpProgress" class="progress-fill"></div>
-            </div>
-            <p class="motivation-message">Motivace: Každá série ti dává XP. Zlepšuj se a dosáhni vyšších úrovní! 🎉 Nepřestávej, tvůj streak je v ohrožení!</p>
-            <canvas id="confettiCanvas" style="position: fixed; top: 0; left: 0; pointer-events: none; z-index: 100;"></canvas>
-        </section>
-    </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const splash = document.getElementById("splash");
-            const app = document.getElementById("app");
-            const backBtn = document.getElementById("backBtn");
-            const homeBtn = document.getElementById("homeBtn");
-            const headerTitle = document.getElementById("headerTitle");
-            const home = document.getElementById("home");
-            const categories = document.getElementById("categories");
-            const exercises = document.getElementById("exercises");
-            const logging = document.getElementById("logging");
-            const progress = document.getElementById("progress");
-            const levels = document.getElementById("levels");
-            const startTrainingBtn = document.getElementById("startTrainingBtn");
-            const viewProgressBtn = document.getElementById("viewProgressBtn");
-            const viewLevelsBtn = document.getElementById("viewLevelsBtn");
-            const addSetBtn = document.getElementById("addSetBtn");
-            const saveSessionBtn = document.getElementById("saveSessionBtn");
-            const weightInput = document.getElementById("weightInput");
-            const repsInput = document.getElementById("repsInput");
-            const currentSets = document.getElementById("currentSets");
-            const graphCanvas = document.getElementById("graph");
-            const historyDiv = document.getElementById("history");
-            const levelInfo = document.getElementById("levelInfo");
-            const searchInput = document.getElementById("searchInput");
-            const exerciseSearchInput = document.getElementById("exerciseSearchInput");
-            const categoryList = document.getElementById("categoryList");
-            const exerciseList = document.getElementById("exerciseList");
-            const xpProgress = document.getElementById("xpProgress");
-            const confettiCanvas = document.getElementById("confettiCanvas");
-            const overallImprovement = document.getElementById("overallImprovement");
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:ultimate_gym_tracker/models/exercise.dart';
+import 'package:ultimate_gym_tracker/models/pr_record.dart';
+import 'package:ultimate_gym_tracker/models/workout.dart';
+import 'package:ultimate_gym_tracker/models/workout_set.dart';
+import 'package:ultimate_gym_tracker/screens/home_screen.dart';
+import 'package:ultimate_gym_tracker/services/storage_service.dart';
+import 'package:ultimate_gym_tracker/theme/app_theme.dart';
+import 'package:ultimate_gym_tracker/data/exercise_database.dart';
 
-            let currentCategory = "";
-            let currentExercise = "";
-            let currentSessionSets = [];
-            let chart;
-            let confetti;
-            let currentMode = ""; // To track Trénink or Pokrok
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
 
-            // ===== SPLASH SAFE HIDE =====
-            setTimeout(() => {
-                splash.style.display = "none";
-                app.classList.remove("hidden");
-                showOverallImprovement();
-            }, 1500);
+  // Register Hive adapters
+  Hive.registerAdapter(ExerciseAdapter());
+  Hive.registerAdapter(WorkoutSetAdapter());
+  Hive.registerAdapter(WorkoutAdapter());
+  Hive.registerAdapter(PrRecordAdapter());
 
-            // ===== CONFETTI SETUP =====
-            confetti = new ConfettiGenerator({ target: 'confettiCanvas' });
+  // Open boxes
+  await Hive.openBox<Exercise>('exercises');
+  await Hive.openBox<Workout>('workouts');
+  await Hive.openBox<PrRecord>('pr_records');
+  await Hive.openBox('settings');
 
-            // ===== DATABASE OF CATEGORIES AND EXERCISES =====
-            const db = {
-                "Prsa": [
-                    "Bench Press", "Incline Bench Press", "Decline Bench Press", "Dumbbell Bench Press", "Dumbbell Flyes",
-                    "Cable Flyes", "Push-ups", "Dips", "Machine Chest Press", "Pec Deck", "Svend Press", "Around the Worlds",
-                    "Plate Press", "Chest Squeeze", "Incline Dumbbell Press", "Decline Dumbbell Press", "Hex Press",
-                    "Landmine Press", "Close Grip Bench Press", "Wide Grip Bench Press", "Pause Bench Press"
-                ],
-                "Záda": [
-                    "Pull-ups", "Chin-ups", "Lat Pulldown", "Seated Row", "Bent Over Row", "Deadlift", "Romanian Deadlift",
-                    "T-Bar Row", "Face Pulls", "Inverted Row", "Single Arm Dumbbell Row", "Barbell Row", "Pendlay Row",
-                    "Rack Pulls", "Good Mornings", "Hyperextensions", "Superman", "Bird Dog", "Shrugs", "Farmer's Walk",
-                    "Yates Row", "Meadows Row", "Kroc Row", "Helms Row"
-                ],
-                "Nohy": [
-                    "Squat", "Front Squat", "Back Squat", "Goblet Squat", "Leg Press", "Hack Squat", "Lunges", "Walking Lunges",
-                    "Bulgarian Split Squat", "Step-ups", "Calf Raises", "Seated Calf Raise", "Leg Extension", "Leg Curl",
-                    "Romanian Deadlift", "Stiff Leg Deadlift", "Glute Bridge", "Hip Thrust", "Sumo Squat", "Pistol Squat",
-                    "Box Jump", "Jump Squat", "Wall Sit", "Donkey Kicks", "Fire Hydrants"
-                ],
-                "Ramena": [
-                    "Overhead Press", "Military Press", "Dumbbell Shoulder Press", "Arnold Press", "Lateral Raise",
-                    "Front Raise", "Rear Delt Fly", "Face Pull", "Upright Row", "Shrugs", "Push Press", "Jerk",
-                    "Handstand Push-up", "Pike Push-up", "Cuban Press", "External Rotation", "Internal Rotation",
-                    "Plate Front Raise", "Bus Driver", "Shoulder Circles", "Band Pull Apart", "Reverse Fly"
-                ],
-                "Biceps": [
-                    "Biceps Curl", "Dumbbell Curl", "Barbell Curl", "EZ Bar Curl", "Hammer Curl", "Concentration Curl",
-                    "Preacher Curl", "Cable Curl", "Incline Dumbbell Curl", "Spider Curl", "Drag Curl", "Zottman Curl",
-                    "21s", "Reverse Curl", "Wrist Curl", "Chin-ups", "Close Grip Pull-up", "Bicep Squeeze",
-                    "Isometric Hold", "Negative Curls"
-                ],
-                "Triceps": [
-                    "Triceps Pushdown", "Skull Crusher", "Close Grip Bench Press", "Dips", "Overhead Triceps Extension",
-                    "Dumbbell Kickback", "Rope Pushdown", "Diamond Push-ups", "Bench Dips", "French Press",
-                    "Triceps Kickback", "Cable Overhead Extension", "Lying Triceps Extension", "Seated Triceps Press",
-                    "Reverse Grip Pushdown", "JM Press", "Tate Press", "Floor Press", "Band Pushdown"
-                ],
-                "Břicho": [
-                    "Crunches", "Sit-ups", "Leg Raises", "Hanging Leg Raise", "Plank", "Side Plank", "Russian Twist",
-                    "Bicycle Crunch", "Mountain Climbers", "Flutter Kicks", "Scissor Kicks", "Toe Touches", "V-ups",
-                    "Dragon Flag", "Windshield Wipers", "Ab Wheel Rollout", "Cable Crunch", "Woodchoppers",
-                    "Reverse Crunch", "Heel Taps", "Bird Dog", "Dead Bug"
-                ],
-                "Lýtka": [
-                    "Standing Calf Raise", "Seated Calf Raise", "Donkey Calf Raise", "Calf Raise on Leg Press",
-                    "Single Leg Calf Raise", "Jump Rope", "Box Jumps", "Farmer's Walk on Toes", "Tibialis Raise",
-                    "Calf Stretch", "Wall Calf Raise"
-                ],
-                "Předloktí": [
-                    "Wrist Curl", "Reverse Wrist Curl", "Farmer's Walk", "Plate Pinch", "Gripper", "Hammer Curl",
-                    "Towel Pull-up", "Fat Grip Curl", "Wrist Roller", "Finger Curls"
-                ],
-                "Trapézy": [
-                    "Shrugs", "Dumbbell Shrugs", "Barbell Shrugs", "Farmer's Walk", "Rack Pulls", "Upright Row",
-                    "Face Pull", "Power Clean", "Snatch", "High Pull"
-                ],
-                "Celé Tělo": [
-                    "Burpees", "Clean and Jerk", "Snatch", "Thrusters", "Kettlebell Swing", "Turkish Get-up",
-                    "Bear Crawl", "Farmer's Carry", "Sled Push", "Battle Ropes"
-                ]
-                // Přidej další kategorie podle potřeby
-            };
+  // Initialize default data if needed
+  await StorageService.initDefaultData();
 
-            // Flatten all exercises for global search
-            const allExercises = Object.entries(db).flatMap(([cat, exs]) => exs.map(ex => ({ cat, ex })));
+  runApp(const MyApp());
+}
 
-            // ===== DATA STORAGE =====
-            function loadData() {
-                const logs = JSON.parse(localStorage.getItem('gymLogs')) || {};
-                const user = JSON.parse(localStorage.getItem('gymUser')) || { level: 1, xp: 0, totalSets: 0 };
-                return { logs, user };
-            }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-            function saveData(logs, user) {
-                localStorage.setItem('gymLogs', JSON.stringify(logs));
-                localStorage.setItem('gymUser', JSON.stringify(user));
-            }
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => StorageService(),
+      child: MaterialApp(
+        title: 'Ultimate Gym Tracker Pro',
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
+        home: const HomeScreen(),
+        debugShowCheckedModeBanner: false,
+      ),
+    );
+  }
+}
+      import 'package:flutter/material.dart';
 
-            let { logs, user } = loadData();
+class AppTheme {
+  static ThemeData get lightTheme {
+    return ThemeData(
+      primaryColor: Colors.blueAccent,
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
+      scaffoldBackgroundColor: Colors.white,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
+      ),
+      cardTheme: CardTheme(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      textTheme: const TextTheme(
+        headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        bodyLarge: TextStyle(fontSize: 16),
+      ),
+      useMaterial3: true,
+    );
+  }
 
-            // ===== LEVELING SYSTEM =====
-            function addXP(amount) {
-                const oldLevel = user.level;
-                user.xp += amount;
-                user.totalSets += amount / 10;
-                while (user.xp >= user.level * 100) {
-                    user.xp -= user.level * 100;
-                    user.level++;
-                }
-                saveData(logs, user);
-                if (user.level > oldLevel) {
-                    confetti.render();
-                    setTimeout(() => confetti.clear(), 5000); // Longer confetti for celebration
-                }
-                showOverallImprovement();
-            }
+  static ThemeData get darkTheme {
+    return ThemeData(
+      primaryColor: Colors.blueGrey,
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey, brightness: Brightness.dark),
+      scaffoldBackgroundColor: Colors.grey[900],
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.blueGrey,
+        foregroundColor: Colors.white,
+      ),
+      cardTheme: CardTheme(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: Colors.grey[800],
+      ),
+      textTheme: const TextTheme(
+        headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+        bodyLarge: TextStyle(fontSize: 16, color: Colors.white70),
+      ),
+      useMaterial3: true,
+    );
+  }
+}
+      import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
 
-            function showLevels() {
-                levelInfo.innerHTML = `Úroveň: ${user.level}<br>XP: ${user.xp} / ${user.level * 100}<br>Celkové Série: ${user.totalSets}`;
-                const progressPercent = (user.xp / (user.level * 100)) * 100;
-                xpProgress.style.width = `${progressPercent}%`;
-            }
+part 'exercise.g.dart';
 
-            // ===== OVERALL IMPROVEMENT =====
-            function calculateOverallImprovement() {
-                let totalPercent = 0;
-                let count = 0;
-                Object.keys(logs).forEach(ex => {
-                    const data = logs[ex];
-                    if (data.length >= 2) {
-                        const first1RM = Math.max(...data[0].sets.map(s => s.weight * (1 + s.reps / 30)));
-                        const last1RM = Math.max(...data[data.length - 1].sets.map(s => s.weight * (1 + s.reps / 30)));
-                        const percent = ((last1RM - first1RM) / first1RM) * 100;
-                        totalPercent += percent;
-                        count++;
-                    }
-                });
-                if (count === 0) return 0;
-                return (totalPercent / count).toFixed(2);
-            }
+@HiveType(typeId: 0)
+class Exercise extends HiveObject {
+  @HiveField(0)
+  String id = const Uuid().v4();
 
-            function showOverallImprovement() {
-                const percent = calculateOverallImprovement();
-                overallImprovement.textContent = `Celkové zlepšení: ${percent > 0 ? '+' : ''}${percent}% oproti začátku!`;
-                if (percent < 0) {
-                    overallImprovement.classList.add("negative");
-                } else {
-                    overallImprovement.classList.remove("negative");
-                }
-            }
+  @HiveField(1)
+  String name;
 
-            // ===== NAVIGATION HELPERS =====
-            function showSection(section) {
-                [home, categories, exercises, logging, progress, levels].forEach(s => s.classList.add("hidden"));
-                section.classList.remove("hidden");
-            }
+  @HiveField(2)
+  String category; // e.g., 'Compound', 'Isolation', 'Cardio'
 
-            function updateBackBtn(visible) {
-                backBtn.classList.toggle("hidden", !visible);
-                homeBtn.classList.toggle("hidden", !visible);
-            }
+  @HiveField(3)
+  String muscleGroup; // e.g., 'Chest', 'Back', 'Legs'
 
-            // ===== HOME BUTTON =====
-            homeBtn.onclick = () => {
-                backToHome();
-            };
+  @HiveField(4)
+  String equipment; // e.g., 'Barbell', 'Dumbbell', 'Bodyweight'
 
-            // ===== HOME BUTTONS =====
-            startTrainingBtn.onclick = () => {
-                currentMode = "Trénink";
-                showCategories("Trénink");
-            };
+  @HiveField(5)
+  String description;
 
-            viewProgressBtn.onclick = () => {
-                currentMode = "Pokrok";
-                showCategories("Pokrok");
-            };
+  @HiveField(6)
+  String instructions;
 
-            viewLevelsBtn.onclick = () => {
-                showSection(levels);
-                showLevels();
-                headerTitle.textContent = "Úrovně";
-                updateBackBtn(true);
-            };
+  @HiveField(7)
+  String tips;
 
-            // ===== SHOW CATEGORIES WITH SEARCH =====
-            function showCategories(mode) {
-                categoryList.innerHTML = "";
-                Object.keys(db).forEach(cat => {
-                    const div = document.createElement("div");
-                    div.className = "item";
-                    div.textContent = cat;
-                    div.onclick = () => {
-                        currentCategory = cat;
-                        showExercises(mode);
-                    };
-                    categoryList.appendChild(div);
-                });
-                showSection(categories);
-                headerTitle.textContent = mode === "Trénink" ? "Kategorie" : "Vyber Partii pro Pokrok";
-                updateBackBtn(true);
-                homeBtn.classList.remove("hidden");
+  @HiveField(8)
+  String commonMistakes;
 
-                // Global search for exercises
-                searchInput.oninput = () => {
-                    const query = searchInput.value.toLowerCase();
-                    categoryList.innerHTML = "";
-                    if (query) {
-                        const filtered = allExercises.filter(({ ex }) => ex.toLowerCase().includes(query));
-                        filtered.forEach(({ cat, ex }) => {
-                            const div = document.createElement("div");
-                            div.className = "item";
-                            div.innerHTML = `<strong>${ex}</strong> (${cat})`;
-                            div.onclick = () => {
-                                currentCategory = cat;
-                                currentExercise = ex;
-                                if (mode === "Trénink") {
-                                    startLogging();
-                                } else {
-                                    showProgress();
-                                }
-                            };
-                            categoryList.appendChild(div);
-                        });
-                    } else {
-                        Object.keys(db).forEach(cat => {
-                            const div = document.createElement("div");
-                            div.className = "item";
-                            div.textContent = cat;
-                            div.onclick = () => {
-                                currentCategory = cat;
-                                showExercises(mode);
-                            };
-                            categoryList.appendChild(div);
-                        });
-                    }
-                };
-            }
+  @HiveField(9)
+  String? videoUrl;
 
-            // ===== SHOW EXERCISES WITH SEARCH =====
-            function showExercises(mode) {
-                exerciseList.innerHTML = "";
-                db[currentCategory].forEach(ex => {
-                    const div = document.createElement("div");
-                    div.className = "item";
-                    div.textContent = ex;
-                    div.onclick = () => {
-                        currentExercise = ex;
-                        if (mode === "Trénink") {
-                            startLogging();
-                        } else {
-                            showProgress();
-                        }
-                    };
-                    exerciseList.appendChild(div);
-                });
-                showSection(exercises);
-                headerTitle.textContent = currentCategory;
-                exerciseSearchInput.value = "";
-                updateBackBtn(true); // Ensure back button is visible here
+  @HiveField(10)
+  bool isCustom = false;
 
-                exerciseSearchInput.oninput = () => {
-                    const query = exerciseSearchInput.value.toLowerCase();
-                    exerciseList.innerHTML = "";
-                    db[currentCategory].filter(ex => ex.toLowerCase().includes(query)).forEach(ex => {
-                        const div = document.createElement("div");
-                        div.className = "item";
-                        div.textContent = ex;
-                        div.onclick = () => {
-                            currentExercise = ex;
-                            if (mode === "Trénink") {
-                                startLogging();
-                            } else {
-                                showProgress();
-                            }
-                        };
-                        exerciseList.appendChild(div);
-                    });
-                };
-            }
+  @HiveField(11)
+  bool isFavorite = false;
 
-            // ===== LOGGING =====
-            function startLogging() {
-                currentSessionSets = [];
-                currentSets.innerHTML = "";
-                showSection(logging);
-                headerTitle.textContent = currentExercise;
-                updateBackBtn(true);
-            }
+  Exercise({
+    required this.name,
+    required this.category,
+    required this.muscleGroup,
+    required this.equipment,
+    required this.description,
+    required this.instructions,
+    required this.tips,
+    required this.commonMistakes,
+    this.videoUrl,
+    this.isCustom = false,
+    this.isFavorite = false,
+  });
+}
+      import 'package:hive/hive.dart';
 
-            addSetBtn.onclick = () => {
-                const weight = parseFloat(weightInput.value);
-                const reps = parseInt(repsInput.value);
-                if (weight > 0 && reps > 0) {
-                    currentSessionSets.push({ weight, reps });
-                    const setDiv = document.createElement("div");
-                    setDiv.className = "item";
-                    setDiv.innerHTML = `<span>Váha: ${weight} kg</span><span>Opakování: ${reps}</span>`;
-                    currentSets.appendChild(setDiv);
-                    weightInput.value = "";
-                    repsInput.value = "";
-                    weightInput.focus();
-                }
-            };
+part 'workout_set.g.dart';
 
-            saveSessionBtn.onclick = () => {
-                if (currentSessionSets.length > 0) {
-                    const date = new Date().toISOString().split('T')[0];
-                    if (!logs[currentExercise]) logs[currentExercise] = [];
-                    logs[currentExercise].push({ date, sets: currentSessionSets });
-                    addXP(currentSessionSets.length * 10); // 10 XP per set
-                    saveData(logs, user);
-                    alert("Sezení uloženo! 🎉 Pokračuj v tréninku!");
-                    backToHome();
-                }
-            };
+@HiveType(typeId: 1)
+class WorkoutSet extends HiveObject {
+  @HiveField(0)
+  int reps;
 
-            // ===== PROGRESS =====
-            function showProgress() {
-                showSection(progress);
-                headerTitle.textContent = `${currentExercise} Pokrok`;
-                updateBackBtn(true);
-                if (!logs[currentExercise]) {
-                    historyDiv.innerHTML = "<p>Žádné data ještě. 😔 Začni trénovat!</p>";
-                    return;
-                }
+  @HiveField(1)
+  double weight;
 
-                const data = logs[currentExercise];
-                const labels = data.map(d => d.date);
-                const oneRMs = data.map(d => {
-                    return Math.max(...d.sets.map(s => s.weight * (1 + s.reps / 30)));
-                });
+  @HiveField(2)
+  int restTime; // in seconds
 
-                let lineColor = '#3b82f6';
-                let animationKeyframes = '';
-                if (oneRMs.length >= 2) {
-                    const last = oneRMs[oneRMs.length - 1];
-                    const prev = oneRMs[oneRMs.length - 2];
-                    if (last > prev) {
-                        lineColor = '#22c55e'; // Green
-                        animationKeyframes = 'chart-pulse-green';
-                    } else {
-                        lineColor = '#ef4444'; // Red
-                        animationKeyframes = 'chart-pulse-red';
-                    }
-                }
+  @HiveField(3)
+  String? notes;
 
-                if (chart) chart.destroy();
-                chart = new Chart(graphCanvas, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Odhadovaný 1RM',
-                            data: oneRMs,
-                            borderColor: lineColor,
-                            tension: 0.1
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: { beginAtZero: false }
-                        },
-                        animation: {
-                            duration: 2000
-                        },
-                        elements: {
-                            line: {
-                                borderWidth: 3
-                            }
-                        }
-                    }
-                });
+  @HiveField(4)
+  int rpe; // Rate of Perceived Exertion (1-10)
 
-                // Add pulsing animation to the canvas
-                graphCanvas.style.animation = `${animationKeyframes} 2s infinite`;
+  WorkoutSet({
+    required this.reps,
+    required this.weight,
+    this.restTime = 90,
+    this.notes,
+    this.rpe = 7,
+  });
+}
+      import 'package:hive/hive.dart';
+import 'package:ultimate_gym_tracker/models/exercise.dart';
+import 'package:ultimate_gym_tracker/models/workout_set.dart';
 
-                historyDiv.innerHTML = "";
-                data.forEach((session, i) => {
-                    const sessDiv = document.createElement("div");
-                    sessDiv.className = "item";
-                    sessDiv.innerHTML = `<strong>${session.date}</strong><br>`;
-                    session.sets.forEach((s, j) => {
-                        sessDiv.innerHTML += `Série ${j+1}: ${s.weight} kg x ${s.reps}<br>`;
-                    });
-                    historyDiv.appendChild(sessDiv);
-                });
-            }
+part 'workout.g.dart';
 
-            // ===== BACK BUTTON =====
-            backBtn.onclick = () => {
-                if (!logging.classList.contains("hidden")) {
-                    showExercises(currentMode);
-                } else if (!progress.classList.contains("hidden")) {
-                    showExercises(currentMode);
-                } else if (!exercises.classList.contains("hidden")) {
-                    showCategories(currentMode);
-                } else if (!categories.classList.contains("hidden") || !levels.classList.contains("hidden")) {
-                    backToHome();
-                }
-            };
+@HiveType(typeId: 2)
+class Workout extends HiveObject {
+  @HiveField(0)
+  String id;
 
-            function backToHome() {
-                showSection(home);
-                headerTitle.textContent = "Gym Log";
-                updateBackBtn(false);
-                homeBtn.classList.add("hidden");
-            }
+  @HiveField(1)
+  DateTime date;
 
-            // ===== SERVICE WORKER =====
-            if ("serviceWorker" in navigator) {
-                navigator.serviceWorker.register("service-worker.js");
-            }
-        });
-    </script>
-</body>
-</html>
+  @HiveField(2)
+  List<String> exerciseIds; // List of Exercise IDs
+
+  @HiveField(3)
+  List<List<WorkoutSet>> sets; // For each exercise, list of sets
+
+  @HiveField(4)
+  String? notes;
+
+  @HiveField(5)
+  int duration; // in minutes
+
+  Workout({
+    required this.id,
+    required this.date,
+    required this.exerciseIds,
+    required this.sets,
+    this.notes,
+    this.duration = 0,
+  });
+}
+      import 'package:hive/hive.dart';
+
+part 'pr_record.g.dart';
+
+@HiveType(typeId: 3)
+class PrRecord extends HiveObject {
+  @HiveField(0)
+  String id;
+
+  @HiveField(1)
+  String exerciseId;
+
+  @HiveField(2)
+  DateTime date;
+
+  @HiveField(3)
+  double weight;
+
+  @HiveField(4)
+  int reps;
+
+  @HiveField(5)
+  double? oneRm; // Calculated 1RM
+
+  PrRecord({
+    required this.id,
+    required this.exerciseId,
+    required this.date,
+    required this.weight,
+    required this.reps,
+    this.oneRm,
+  });
+}
+      import 'package:ultimate_gym_tracker/models/exercise.dart';
+import 'package:uuid/uuid.dart';
+
+class ExerciseDatabase {
+  static List<Exercise> get defaultExercises {
+    return [
+      Exercise(
+        name: 'Bench Press',
+        category: 'Compound',
+        muscleGroup: 'Chest',
+        equipment: 'Barbell',
+        description: 'A fundamental upper body strength exercise targeting the chest, shoulders, and triceps.',
+        instructions: 'Lie on a bench, grip the bar wider than shoulder-width. Lower the bar to chest, then press up.',
+        tips: 'Keep feet planted, arch back slightly, squeeze shoulder blades.',
+        commonMistakes: 'Bouncing the bar off chest, flaring elbows too much.',
+        videoUrl: 'https://youtube.com/watch?v=example_bench',
+      ),
+      Exercise(
+        name: 'Squat',
+        category: 'Compound',
+        muscleGroup: 'Legs',
+        equipment: 'Barbell',
+        description: 'Full body exercise focusing on quads, glutes, and hamstrings.',
+        instructions: 'Place bar on upper back, feet shoulder-width. Lower until thighs parallel, then stand up.',
+        tips: 'Keep chest up, knees out, drive through heels.',
+        commonMistakes: 'Knees caving in, rounding back.',
+        videoUrl: 'https://youtube.com/watch?v=example_squat',
+      ),
+      Exercise(
+        name: 'Deadlift',
+        category: 'Compound',
+        muscleGroup: 'Back',
+        equipment: 'Barbell',
+        description: 'Posterior chain builder targeting back, glutes, hamstrings.',
+        instructions: 'Stand with feet hip-width, grip bar. Lift by extending hips and knees.',
+        tips: 'Keep bar close to body, neutral spine.',
+        commonMistakes: 'Rounding back, jerking the bar.',
+        videoUrl: 'https://youtube.com/watch?v=example_deadlift',
+      ),
+      Exercise(
+        name: 'Pull-Up',
+        category: 'Compound',
+        muscleGroup: 'Back',
+        equipment: 'Bodyweight',
+        description: 'Upper body pulling exercise for lats and biceps.',
+        instructions: 'Hang from bar, pull body up until chin over bar, lower controlled.',
+        tips: 'Squeeze lats, avoid swinging.',
+        commonMistakes: 'Kipping unless intended, incomplete range.',
+        videoUrl: 'https://youtube.com/watch?v=example_pullup',
+      ),
+      Exercise(
+        name: 'Overhead Press',
+        category: 'Compound',
+        muscleGroup: 'Shoulders',
+        equipment: 'Barbell',
+        description: 'Shoulder strength builder also hitting triceps.',
+        instructions: 'Press bar from collarbone to overhead, lock arms.',
+        tips: 'Brace core, avoid arching back excessively.',
+        commonMistakes: 'Using legs (push press), flaring elbows.',
+        videoUrl: 'https://youtube.com/watch?v=example_ohp',
+      ),
+      // Další cviky na hrudník
+      Exercise(
+        name: 'Incline Bench Press',
+        category: 'Compound',
+        muscleGroup: 'Chest',
+        equipment: 'Barbell',
+        description: 'Targets upper chest.',
+        instructions: 'Bench at 30-45 degrees, press bar up.',
+        tips: 'Control descent, explode up.',
+        commonMistakes: 'Too steep incline.',
+      ),
+      Exercise(
+        name: 'Dumbbell Flyes',
+        category: 'Isolation',
+        muscleGroup: 'Chest',
+        equipment: 'Dumbbell',
+        description: 'Chest stretch and contraction.',
+        instructions: 'Lie on bench, lower dumbbells in arc, bring up.',
+        tips: 'Slight bend in elbows.',
+        commonMistakes: 'Overstretching shoulders.',
+      ),
+      // Na záda
+      Exercise(
+        name: 'Bent Over Row',
+        category: 'Compound',
+        muscleGroup: 'Back',
+        equipment: 'Barbell',
+        description: 'Builds mid-back thickness.',
+        instructions: 'Bend at hips, row bar to lower chest.',
+        tips: 'Keep back flat.',
+        commonMistakes: 'Using momentum.',
+      ),
+      Exercise(
+        name: 'Lat Pulldown',
+        category: 'Compound',
+        muscleGroup: 'Back',
+        equipment: 'Machine',
+        description: 'Wide grip for lats.',
+        instructions: 'Pull bar to chest, squeeze lats.',
+        tips: 'Lean back slightly.',
+        commonMistakes: 'Pulling with arms only.',
+      ),
+      // Na nohy
+      Exercise(
+        name: 'Leg Press',
+        category: 'Compound',
+        muscleGroup: 'Legs',
+        equipment: 'Machine',
+        description: 'Quad dominant press.',
+        instructions: 'Push platform away, lower controlled.',
+        tips: 'Feet shoulder-width.',
+        commonMistakes: 'Knees locking out.',
+      ),
+      Exercise(
+        name: 'Romanian Deadlift',
+        category: 'Compound',
+        muscleGroup: 'Hamstrings',
+        equipment: 'Barbell',
+        description: 'Hamstring and glute focus.',
+        instructions: 'Hinge at hips, lower bar to shins.',
+        tips: 'Keep back straight.',
+        commonMistakes: 'Bending knees too much.',
+      ),
+      // Na ramena
+      Exercise(
+        name: 'Lateral Raise',
+        category: 'Isolation',
+        muscleGroup: 'Shoulders',
+        equipment: 'Dumbbell',
+        description: 'Side delt isolation.',
+        instructions: 'Raise arms to sides.',
+        tips: 'Lead with elbows.',
+        commonMistakes: 'Swinging weights.',
+      ),
+      Exercise(
+        name: 'Face Pull',
+        category: 'Isolation',
+        muscleGroup: 'Shoulders',
+        equipment: 'Cable',
+        description: 'Rear delts and upper back.',
+        instructions: 'Pull rope to face.',
+        tips: 'External rotation.',
+        commonMistakes: 'Using too much weight.',
+      ),
+      // Na ruce
+      Exercise(
+        name: 'Bicep Curl',
+        category: 'Isolation',
+        muscleGroup: 'Arms',
+        equipment: 'Dumbbell',
+        description: 'Bicep builder.',
+        instructions: 'Curl weights up.',
+        tips: 'Squeeze at top.',
+        commonMistakes: 'Swinging body.',
+      ),
+      Exercise(
+        name: 'Tricep Extension',
+        category: 'Isolation',
+        muscleGroup: 'Arms',
+        equipment: 'Cable',
+        description: 'Tricep isolation.',
+        instructions: 'Extend arms down.',
+        tips: 'Keep elbows fixed.',
+        commonMistakes: 'Flaring elbows.',
+      ),
+      // Na core
+      Exercise(
+        name: 'Plank',
+        category: 'Isolation',
+        muscleGroup: 'Core',
+        equipment: 'Bodyweight',
+        description: 'Core stability.',
+        instructions: 'Hold forearm position.',
+        tips: 'Neutral spine.',
+        commonMistakes: 'Sagging hips.',
+      ),
+      Exercise(
+        name: 'Russian Twist',
+        category: 'Isolation',
+        muscleGroup: 'Core',
+        equipment: 'Bodyweight',
+        description: 'Oblique twist.',
+        instructions: 'Twist torso with medicine ball.',
+        tips: 'Controlled movement.',
+        commonMistakes: 'Too fast.',
+      ),
+      // Cardio
+      Exercise(
+        name: 'Treadmill Run',
+        category: 'Cardio',
+        muscleGroup: 'Full Body',
+        equipment: 'Machine',
+        description: 'Cardiovascular endurance.',
+        instructions: 'Run at steady pace.',
+        tips: 'Good posture.',
+        commonMistakes: 'Holding rails.',
+      ),
+      // ... Přidej dalších 400+ podobně (např. variations: incline/decline, unilateral, etc.)
+      // Pro délku přidám ještě pár placeholderů
+      Exercise(name: 'Push-Up', category: 'Compound', muscleGroup: 'Chest', equipment: 'Bodyweight', description: '...', instructions: '...', tips: '...', commonMistakes: '...'),
+      Exercise(name: 'Dip', category: 'Compound', muscleGroup: 'Chest', equipment: 'Bodyweight', description: '...', instructions: '...', tips: '...', commonMistakes: '...'),
+      // atd. – v reálu rozšiř na stovky
+    ];
+  }
+}
+      import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:ultimate_gym_tracker/data/exercise_database.dart';
+import 'package:ultimate_gym_tracker/models/exercise.dart';
+import 'package:ultimate_gym_tracker/models/pr_record.dart';
+import 'package:ultimate_gym_tracker/models/workout.dart';
+import 'package:uuid/uuid.dart';
+
+class StorageService extends ChangeNotifier {
+  late Box<Exercise> _exercisesBox;
+  late Box<Workout> _workoutsBox;
+  late Box<PrRecord> _prRecordsBox;
+  late Box _settingsBox;
+
+  StorageService() {
+    _exercisesBox = Hive.box<Exercise>('exercises');
+    _workoutsBox = Hive.box<Workout>('workouts');
+    _prRecordsBox = Hive.box<PrRecord>('pr_records');
+    _settingsBox = Hive.box('settings');
+  }
+
+  static Future<void> initDefaultData() async {
+    final exercisesBox = Hive.box<Exercise>('exercises');
+    if (exercisesBox.isEmpty) {
+      for (var exercise in ExerciseDatabase.defaultExercises) {
+        await exercisesBox.put(exercise.id, exercise);
+      }
+    }
+    // Inicializuj další data pokud potřeba (např. default settings)
+  }
+
+  // Exercises methods
+  List<Exercise> getAllExercises() => _exercisesBox.values.toList();
+
+  Future<void> addCustomExercise(Exercise exercise) async {
+    exercise.id = const Uuid().v4();
+    exercise.isCustom = true;
+    await _exercisesBox.put(exercise.id, exercise);
+    notifyListeners();
+  }
+
+  Future<void> toggleFavorite(String exerciseId) async {
+    final exercise = _exercisesBox.get(exerciseId);
+    if (exercise != null) {
+      exercise.isFavorite = !exercise.isFavorite;
+      await exercise.save();
+      notifyListeners();
+    }
+  }
+
+  List<Exercise> searchExercises(String query) {
+    final lowerQuery = query.toLowerCase();
+    return getAllExercises().where((ex) {
+      return ex.name.toLowerCase().contains(lowerQuery) ||
+             ex.muscleGroup.toLowerCase().contains(lowerQuery) ||
+             ex.category.toLowerCase().contains(lowerQuery);
+    }).toList();
+  }
+
+  // Workouts methods
+  Future<void> addWorkout(Workout workout) async {
+    await _workoutsBox.put(workout.id, workout);
+    // Update PRs automatically
+    await _updatePrsFromWorkout(workout);
+    notifyListeners();
+  }
+
+  List<Workout> getWorkoutsByDate(DateTime date) {
+    return _workoutsBox.values.where((w) => 
+      w.date.year == date.year && w.date.month == date.month && w.date.day == date.day
+    ).toList();
+  }
+
+  // PR methods
+  List<PrRecord> getPrsForExercise(String exerciseId) {
+    return _prRecordsBox.values.where((pr) => pr.exerciseId == exerciseId).toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  Future<void> _updatePrsFromWorkout(Workout workout) async {
+    for (int i = 0; i < workout.exerciseIds.length; i++) {
+      final exerciseId = workout.exerciseIds[i];
+      final sets = workout.sets[i];
+      final maxSet = sets.reduce((curr, next) => curr.weight > next.weight ? curr : (curr.weight == next.weight && curr.reps > next.reps ? curr : next));
+      
+      final existingPrs = getPrsForExercise(exerciseId);
+      final bestPr = existingPrs.isNotEmpty ? existingPrs.first : null;
+
+      if (bestPr == null || maxSet.weight > bestPr.weight || (maxSet.weight == bestPr.weight && maxSet.reps > bestPr.reps)) {
+        final newPr = PrRecord(
+          id: const Uuid().v4(),
+          exerciseId: exerciseId,
+          date: workout.date,
+          weight: maxSet.weight,
+          reps: maxSet.reps,
+          oneRm: _calculateOneRm(maxSet.weight, maxSet.reps),
+        );
+        await _prRecordsBox.put(newPr.id, newPr);
+      }
+    }
+  }
+
+  double _calculateOneRm(double weight, int reps) {
+    // Epley formula
+    return weight * (1 + reps / 30);
+  }
+
+  // Settings methods (e.g., units, theme)
+  bool get isMetric => _settingsBox.get('units', defaultValue: true) as bool;
+
+  Future<void> setMetric(bool value) async {
+    await _settingsBox.put('units', value);
+    notifyListeners();
+  }
+
+  // Další metody: delete, export, etc.
+}
